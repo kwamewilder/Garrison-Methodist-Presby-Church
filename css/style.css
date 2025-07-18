@@ -52,14 +52,14 @@ p {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
     color: white;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 25px rgba(139, 69, 19, 0.4);
 }
 
 .btn-secondary {
@@ -72,6 +72,34 @@ p {
     background: white;
     color: #333;
     transform: translateY(-2px);
+}
+
+.btn-small {
+    padding: 8px 20px;
+    font-size: 0.9rem;
+    border-radius: 25px;
+    text-decoration: none;
+    background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+    color: white;
+    transition: all 0.3s ease;
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.btn-small:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
+}
+
+.btn-small.secondary {
+    background: transparent;
+    border: 1px solid #8B4513;
+    color: #8B4513;
+}
+
+.btn-small.secondary:hover {
+    background: #8B4513;
+    color: white;
 }
 
 /* Header */
@@ -104,7 +132,7 @@ p {
     align-items: center;
     font-size: 1.5rem;
     font-weight: 700;
-    color: #667eea;
+    color: #8B4513;
 }
 
 .nav-logo i {
@@ -128,7 +156,7 @@ p {
 
 .nav-link:hover,
 .nav-link.active {
-    color: #667eea;
+    color: #8B4513;
 }
 
 .nav-link::after {
@@ -138,7 +166,7 @@ p {
     left: 0;
     width: 0;
     height: 2px;
-    background: #667eea;
+    background: #8B4513;
     transition: width 0.3s ease;
 }
 
@@ -259,7 +287,7 @@ p {
 .service-icon {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -280,7 +308,7 @@ p {
 .service-time {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #667eea;
+    color: #8B4513;
     margin-bottom: 1rem;
 }
 
@@ -313,7 +341,7 @@ p {
 }
 
 .feature i {
-    color: #667eea;
+    color: #8B4513;
     margin-right: 1rem;
     font-size: 1.2rem;
 }
@@ -410,7 +438,7 @@ p {
 }
 
 .event-date {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
     color: white;
     padding: 1rem;
     border-radius: 15px;
@@ -438,7 +466,7 @@ p {
 }
 
 .event-time {
-    color: #667eea;
+    color: #8B4513;
     font-weight: 600;
     margin-bottom: 0.5rem;
 }
@@ -450,7 +478,7 @@ p {
 /* Contact Preview Section */
 .contact-preview {
     padding: 100px 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
     color: white;
 }
 
@@ -523,7 +551,7 @@ p {
 .footer-logo i {
     margin-right: 10px;
     font-size: 1.5rem;
-    color: #667eea;
+    color: #D2691E;
 }
 
 .footer-section h4 {
@@ -547,7 +575,7 @@ p {
 }
 
 .footer-section ul li a:hover {
-    color: #667eea;
+    color: #D2691E;
 }
 
 .social-links {
@@ -570,7 +598,7 @@ p {
 }
 
 .social-links a:hover {
-    background: #667eea;
+    background: #D2691E;
     transform: translateY(-2px);
 }
 
@@ -579,6 +607,613 @@ p {
     padding-top: 2rem;
     text-align: center;
     color: rgba(255, 255, 255, 0.6);
+}
+
+/* Sermon Page Styles */
+.featured-sermon {
+    padding: 100px 0;
+    background: white;
+}
+
+.featured-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+}
+
+.sermon-video {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    border-radius: 15px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.sermon-video iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 15px;
+}
+
+.sermon-date {
+    color: #8B4513;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.sermon-speaker {
+    color: #666;
+    font-style: italic;
+    margin-bottom: 1rem;
+}
+
+.sermon-tags {
+    margin-top: 1.5rem;
+}
+
+.tag {
+    display: inline-block;
+    background: #f0f0f0;
+    color: #8B4513;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    margin-right: 10px;
+    margin-bottom: 5px;
+}
+
+.sermon-series {
+    padding: 100px 0;
+    background: #f8f9fa;
+}
+
+.series-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.sermon-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.sermon-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.sermon-thumbnail {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+}
+
+.sermon-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.sermon-card:hover .sermon-thumbnail img {
+    transform: scale(1.1);
+}
+
+.play-button {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    background: rgba(139, 69, 19, 0.9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.sermon-card:hover .play-button {
+    background: rgba(139, 69, 19, 1);
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+.sermon-details {
+    padding: 2rem;
+}
+
+.recent-messages {
+    padding: 100px 0;
+    background: white;
+}
+
+.messages-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.message-item {
+    display: flex;
+    background: #f8f9fa;
+    border-radius: 15px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.message-item:hover {
+    background: white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transform: translateY(-5px);
+}
+
+.message-image {
+    width: 200px;
+    height: 150px;
+    overflow: hidden;
+}
+
+.message-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.message-content {
+    padding: 2rem;
+    flex: 1;
+}
+
+.message-date {
+    color: #8B4513;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.message-speaker {
+    color: #666;
+    font-style: italic;
+    margin-bottom: 0.5rem;
+}
+
+.message-actions {
+    margin-top: 1rem;
+}
+
+/* Events Page Styles */
+.upcoming-events {
+    padding: 100px 0;
+    background: white;
+}
+
+.events-list {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+}
+
+.event-detail-card {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 3rem;
+    background: #f8f9fa;
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.event-detail-card:hover {
+    background: white;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    transform: translateY(-5px);
+}
+
+.event-image {
+    position: relative;
+    height: 300px;
+    overflow: hidden;
+}
+
+.event-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.event-date-badge {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+    color: white;
+    padding: 1rem;
+    border-radius: 15px;
+    text-align: center;
+    min-width: 80px;
+}
+
+.event-date-badge .day {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.event-date-badge .month {
+    display: block;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.event-info {
+    padding: 2rem;
+}
+
+.event-meta {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    color: #666;
+}
+
+.meta-item i {
+    color: #8B4513;
+    margin-right: 0.5rem;
+}
+
+.event-location {
+    margin: 2rem 0;
+}
+
+.event-location h4 {
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.event-location iframe {
+    border-radius: 10px;
+}
+
+.event-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.regular-activities {
+    padding: 100px 0;
+    background: #f8f9fa;
+}
+
+.activities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.activity-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.activity-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.activity-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+.activity-icon i {
+    font-size: 1.5rem;
+    color: white;
+}
+
+.activity-time {
+    color: #8B4513;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+/* Contact Page Styles */
+.contact-info-section {
+    padding: 100px 0;
+    background: white;
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+}
+
+.contact-details h2 {
+    color: #333;
+    margin-bottom: 1.5rem;
+}
+
+.contact-items {
+    margin: 3rem 0;
+}
+
+.contact-item-large {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 2.5rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+}
+
+.contact-item-large:hover {
+    background: white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transform: translateY(-5px);
+}
+
+.contact-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1.5rem;
+    flex-shrink: 0;
+}
+
+.contact-icon i {
+    color: white;
+    font-size: 1.2rem;
+}
+
+.contact-text h4 {
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.contact-text p {
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.contact-text small {
+    color: #999;
+    font-size: 0.9rem;
+}
+
+.social-section {
+    margin-top: 3rem;
+}
+
+.social-section h4 {
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.social-links-large {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.social-links-large a {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #333;
+    transition: all 0.3s ease;
+}
+
+.social-links-large a:hover {
+    background: #8B4513;
+    color: white;
+    transform: translateX(10px);
+}
+
+.social-links-large a i {
+    margin-right: 1rem;
+    font-size: 1.2rem;
+}
+
+.contact-form-container {
+    background: #f8f9fa;
+    padding: 3rem;
+    border-radius: 20px;
+}
+
+.contact-form-container h3 {
+    color: #333;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    color: #333;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #8B4513;
+    box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.map-section {
+    padding: 100px 0;
+    background: #f8f9fa;
+}
+
+.map-container {
+    margin-bottom: 3rem;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.directions-info {
+    margin-top: 3rem;
+}
+
+.directions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.direction-item {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.direction-item i {
+    font-size: 2rem;
+    color: #8B4513;
+    margin-bottom: 1rem;
+}
+
+.direction-item h4 {
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.staff-section {
+    padding: 100px 0;
+    background: white;
+}
+
+.staff-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 3rem;
+}
+
+.staff-card {
+    background: #f8f9fa;
+    border-radius: 20px;
+    overflow: hidden;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.staff-card:hover {
+    background: white;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    transform: translateY(-10px);
+}
+
+.staff-image {
+    height: 250px;
+    overflow: hidden;
+}
+
+.staff-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.staff-info {
+    padding: 2rem;
+}
+
+.staff-title {
+    color: #8B4513;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.staff-contact {
+    margin-top: 1.5rem;
+}
+
+.staff-contact a {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    background: #8B4513;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.staff-contact a:hover {
+    background: #D2691E;
+    transform: translateY(-2px);
 }
 
 /* Animations */
@@ -642,23 +1277,40 @@ p {
     }
 
     .welcome-content,
-    .contact-content {
+    .contact-content,
+    .featured-content,
+    .contact-grid {
         grid-template-columns: 1fr;
         gap: 2rem;
     }
 
     .services-grid,
-    .ministries-grid {
+    .ministries-grid,
+    .series-grid {
         grid-template-columns: 1fr;
     }
 
-    .events-grid {
+    .events-grid,
+    .activities-grid,
+    .directions-grid,
+    .staff-grid {
         grid-template-columns: 1fr;
     }
 
-    .event-card {
+    .event-card,
+    .event-detail-card {
         flex-direction: column;
         text-align: center;
+        grid-template-columns: 1fr;
+    }
+
+    .message-item {
+        flex-direction: column;
+    }
+
+    .message-image {
+        width: 100%;
+        height: 200px;
     }
 
     h1 { font-size: 2.5rem; }
@@ -673,15 +1325,27 @@ p {
     .welcome,
     .ministries,
     .events,
-    .contact-preview {
+    .contact-preview,
+    .featured-sermon,
+    .sermon-series,
+    .recent-messages,
+    .upcoming-events,
+    .regular-activities,
+    .contact-info-section,
+    .map-section,
+    .staff-section {
         padding: 60px 0;
+    }
+
+    .contact-form-container {
+        padding: 2rem;
     }
 }
 
 /* Page Header Styles */
 .page-header {
     padding: 150px 0 100px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
     color: white;
     text-align: center;
 }
@@ -760,6 +1424,14 @@ p {
     }
 
     .event-card {
+        padding: 1.5rem;
+    }
+
+    .contact-form-container {
+        padding: 1.5rem;
+    }
+
+    .event-info {
         padding: 1.5rem;
     }
 }
