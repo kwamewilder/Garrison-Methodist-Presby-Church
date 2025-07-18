@@ -27,18 +27,6 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
-// Header background change on scroll
-window.addEventListener('scroll', () => {
-    const header = document.querySelector('.header');
-    if (window.scrollY > 100) {
-        header.style.background = 'rgba(255, 255, 255, 0.98)';
-        header.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.15)';
-    } else {
-        header.style.background = 'rgba(255, 255, 255, 0.95)';
-        header.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
-    }
-});
-
 // Animate elements on scroll
 const observerOptions = {
     threshold: 0.1,
@@ -54,8 +42,9 @@ const observer = new IntersectionObserver((entries) => {
     });
 }, observerOptions);
 
-// Observe elements for animation
+// Combined DOMContentLoaded event listener
 document.addEventListener('DOMContentLoaded', () => {
+    // Observe elements for animation
     const animateElements = document.querySelectorAll('.service-card, .ministry-card, .event-card, .welcome-text, .welcome-image');
     
     animateElements.forEach(el => {
@@ -63,6 +52,19 @@ document.addEventListener('DOMContentLoaded', () => {
         el.style.transform = 'translateY(30px)';
         el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
         observer.observe(el);
+    });
+
+    // Add hover effects for cards
+    const cards = document.querySelectorAll('.service-card, .ministry-card, .event-card');
+
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style.transform = 'translateY(-10px) scale(1.02)';
+        });
+
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'translateY(0) scale(1)';
+        });
     });
 });
 
@@ -98,32 +100,26 @@ function validateForm(form) {
     return isValid;
 }
 
-// Add hover effects for cards
-document.addEventListener('DOMContentLoaded', () => {
-    const cards = document.querySelectorAll('.service-card, .ministry-card, .event-card');
-    
-    cards.forEach(card => {
-        card.addEventListener('mouseenter', () => {
-            card.style.transform = 'translateY(-10px) scale(1.02)';
-        });
-        
-        card.addEventListener('mouseleave', () => {
-            card.style.transform = 'translateY(0) scale(1)';
-        });
-    });
-});
-
-// Parallax effect for hero section
+// Combined scroll event listener
 window.addEventListener('scroll', () => {
+    // Header background change on scroll
+    const header = document.querySelector('.header');
+    if (window.scrollY > 100) {
+        header.style.background = 'rgba(255, 255, 255, 0.98)';
+        header.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.15)';
+    } else {
+        header.style.background = 'rgba(255, 255, 255, 0.95)';
+        header.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
+    }
+
+    // Parallax effect for hero section
     const scrolled = window.pageYOffset;
     const hero = document.querySelector('.hero');
     if (hero) {
         hero.style.transform = `translateY(${scrolled * 0.5}px)`;
     }
-});
 
-// Add active state to navigation based on scroll position
-window.addEventListener('scroll', () => {
+    // Add active state to navigation based on scroll position
     const sections = document.querySelectorAll('section[id]');
     const navLinks = document.querySelectorAll('.nav-link');
     
