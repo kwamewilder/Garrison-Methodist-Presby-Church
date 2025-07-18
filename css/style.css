@@ -52,14 +52,14 @@ p {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     color: white;
-    box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(139, 69, 19, 0.4);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
 }
 
 .btn-secondary {
@@ -79,7 +79,7 @@ p {
     font-size: 0.9rem;
     border-radius: 25px;
     text-decoration: none;
-    background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     color: white;
     transition: all 0.3s ease;
     display: inline-block;
@@ -88,17 +88,17 @@ p {
 
 .btn-small:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(139, 69, 19, 0.3);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
 }
 
 .btn-small.secondary {
     background: transparent;
-    border: 1px solid #8B4513;
-    color: #8B4513;
+    border: 1px solid #6366f1;
+    color: #6366f1;
 }
 
 .btn-small.secondary:hover {
-    background: #8B4513;
+    background: #6366f1;
     color: white;
 }
 
@@ -132,12 +132,14 @@ p {
     align-items: center;
     font-size: 1.5rem;
     font-weight: 700;
-    color: #8B4513;
+    color: #6366f1;
 }
 
-.nav-logo i {
+.logo-img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
     margin-right: 10px;
-    font-size: 1.8rem;
 }
 
 .nav-menu {
@@ -156,7 +158,7 @@ p {
 
 .nav-link:hover,
 .nav-link.active {
-    color: #8B4513;
+    color: #6366f1;
 }
 
 .nav-link::after {
@@ -166,7 +168,7 @@ p {
     left: 0;
     width: 0;
     height: 2px;
-    background: #8B4513;
+    background: #6366f1;
     transition: width 0.3s ease;
 }
 
@@ -287,7 +289,7 @@ p {
 .service-icon {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -308,7 +310,7 @@ p {
 .service-time {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #8B4513;
+    color: #6366f1;
     margin-bottom: 1rem;
 }
 
@@ -341,7 +343,7 @@ p {
 }
 
 .feature i {
-    color: #8B4513;
+    color: #6366f1;
     margin-right: 1rem;
     font-size: 1.2rem;
 }
@@ -438,7 +440,7 @@ p {
 }
 
 .event-date {
-    background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     color: white;
     padding: 1rem;
     border-radius: 15px;
@@ -466,7 +468,7 @@ p {
 }
 
 .event-time {
-    color: #8B4513;
+    color: #6366f1;
     font-weight: 600;
     margin-bottom: 0.5rem;
 }
@@ -478,7 +480,7 @@ p {
 /* Contact Preview Section */
 .contact-preview {
     padding: 100px 0;
-    background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     color: white;
 }
 
@@ -551,7 +553,7 @@ p {
 .footer-logo i {
     margin-right: 10px;
     font-size: 1.5rem;
-    color: #D2691E;
+    color: #8b5cf6;
 }
 
 .footer-section h4 {
@@ -575,7 +577,7 @@ p {
 }
 
 .footer-section ul li a:hover {
-    color: #D2691E;
+    color: #8b5cf6;
 }
 
 .social-links {
@@ -598,7 +600,7 @@ p {
 }
 
 .social-links a:hover {
-    background: #D2691E;
+    background: #8b5cf6;
     transform: translateY(-2px);
 }
 
@@ -641,7 +643,7 @@ p {
 }
 
 .sermon-date {
-    color: #8B4513;
+    color: #6366f1;
     font-weight: 600;
     font-size: 0.9rem;
     text-transform: uppercase;
@@ -661,7 +663,7 @@ p {
 .tag {
     display: inline-block;
     background: #f0f0f0;
-    color: #8B4513;
+    color: #6366f1;
     padding: 5px 15px;
     border-radius: 20px;
     font-size: 0.8rem;
@@ -717,7 +719,7 @@ p {
     transform: translate(-50%, -50%);
     width: 60px;
     height: 60px;
-    background: rgba(139, 69, 19, 0.9);
+    background: rgba(99, 102, 241, 0.9);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -728,7 +730,7 @@ p {
 }
 
 .sermon-card:hover .play-button {
-    background: rgba(139, 69, 19, 1);
+    background: rgba(99, 102, 241, 1);
     transform: translate(-50%, -50%) scale(1.1);
 }
 
@@ -779,7 +781,7 @@ p {
 }
 
 .message-date {
-    color: #8B4513;
+    color: #6366f1;
     font-weight: 600;
     font-size: 0.9rem;
 }
@@ -838,7 +840,7 @@ p {
     position: absolute;
     top: 20px;
     right: 20px;
-    background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     color: white;
     padding: 1rem;
     border-radius: 15px;
@@ -877,7 +879,7 @@ p {
 }
 
 .meta-item i {
-    color: #8B4513;
+    color: #6366f1;
     margin-right: 0.5rem;
 }
 
@@ -928,7 +930,7 @@ p {
 .activity-icon {
     width: 60px;
     height: 60px;
-    background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -942,7 +944,7 @@ p {
 }
 
 .activity-time {
-    color: #8B4513;
+    color: #6366f1;
     font-weight: 600;
     margin-bottom: 1rem;
 }
@@ -987,7 +989,7 @@ p {
 .contact-icon {
     width: 50px;
     height: 50px;
-    background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -1043,7 +1045,7 @@ p {
 }
 
 .social-links-large a:hover {
-    background: #8B4513;
+    background: #6366f1;
     color: white;
     transform: translateX(10px);
 }
@@ -1097,8 +1099,8 @@ p {
 .form-group select:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #8B4513;
-    box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.1);
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 .form-group textarea {
@@ -1138,7 +1140,7 @@ p {
 
 .direction-item i {
     font-size: 2rem;
-    color: #8B4513;
+    color: #6366f1;
     margin-bottom: 1rem;
 }
 
@@ -1188,7 +1190,7 @@ p {
 }
 
 .staff-title {
-    color: #8B4513;
+    color: #6366f1;
     font-weight: 600;
     margin-bottom: 1rem;
 }
@@ -1201,7 +1203,7 @@ p {
     display: inline-block;
     width: 40px;
     height: 40px;
-    background: #8B4513;
+    background: #6366f1;
     color: white;
     border-radius: 50%;
     display: flex;
@@ -1212,7 +1214,7 @@ p {
 }
 
 .staff-contact a:hover {
-    background: #D2691E;
+    background: #8b5cf6;
     transform: translateY(-2px);
 }
 
@@ -1345,7 +1347,7 @@ p {
 /* Page Header Styles */
 .page-header {
     padding: 150px 0 100px;
-    background: linear-gradient(135deg, #8B4513 0%, #D2691E 100%);
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     color: white;
     text-align: center;
 }
