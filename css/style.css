@@ -194,8 +194,8 @@ p {
 /* Hero Section */
 .hero {
     height: 100vh;
-    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
-                url('https://images.pexels.com/photos/161154/church-stained-glass-window-cathedral-161154.jpeg?auto=compress&cs=tinysrgb&w=1600') center/cover;
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                url('../images/1825559170701935.jpg') center/cover;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -530,8 +530,8 @@ p {
 
 /* Footer */
 .footer {
-    background: #1a1a1a;
-    color: white;
+    background: white;
+    color: #1a1a1a;
     padding: 60px 0 20px;
 }
 
@@ -558,7 +558,7 @@ p {
 }
 
 .footer-section h4 {
-    color: white;
+    color: #1a1a1a;
     margin-bottom: 1.5rem;
     font-size: 1.2rem;
 }
@@ -572,7 +572,7 @@ p {
 }
 
 .footer-section ul li a {
-    color: rgba(255, 255, 255, 0.8);
+    color: #1a1a1a;
     text-decoration: none;
     transition: color 0.3s ease;
 }
