@@ -44,9 +44,8 @@ const observer = new IntersectionObserver((entries) => {
 
 // Combined DOMContentLoaded event listener
 document.addEventListener('DOMContentLoaded', () => {
-    // Observe elements for animation
+    // Animate elements
     const animateElements = document.querySelectorAll('.service-card, .ministry-card, .event-card, .welcome-text, .welcome-image');
-    
     animateElements.forEach(el => {
         el.style.opacity = '0';
         el.style.transform = 'translateY(30px)';
@@ -54,18 +53,38 @@ document.addEventListener('DOMContentLoaded', () => {
         observer.observe(el);
     });
 
-    // Add hover effects for cards
+    // Hover effect
     const cards = document.querySelectorAll('.service-card, .ministry-card, .event-card');
-
     cards.forEach(card => {
         card.addEventListener('mouseenter', () => {
             card.style.transform = 'translateY(-10px) scale(1.02)';
         });
-
         card.addEventListener('mouseleave', () => {
             card.style.transform = 'translateY(0) scale(1)';
         });
     });
+
+    // Hero background image slider
+    const heroImages = [
+        './images/1825559170701935.jpg',
+        './images/article1794156008307393.JPG',
+        './images/1825222838858490.jpg'
+    ];
+    let currentHeroIndex = 0;
+    const hero = document.querySelector('.hero');
+
+    function updateHeroBackground() {
+        if (hero) {
+            hero.style.backgroundImage = `
+                linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                url('${heroImages[currentHeroIndex]}')
+            `;
+            currentHeroIndex = (currentHeroIndex + 1) % heroImages.length;
+        }
+    }
+
+    updateHeroBackground();
+    setInterval(updateHeroBackground, 5000);
 });
 
 // Hero scroll indicator
@@ -122,7 +141,7 @@ window.addEventListener('scroll', () => {
     // Add active state to navigation based on scroll position
     const sections = document.querySelectorAll('section[id]');
     const navLinks = document.querySelectorAll('.nav-link');
-    
+
     let current = '';
     sections.forEach(section => {
         const sectionTop = section.offsetTop;

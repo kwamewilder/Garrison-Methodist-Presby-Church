@@ -191,7 +191,24 @@ p {
     transition: 0.3s;
 }
 
-/* Hero Section */
+
+.hero {
+    height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+    position: relative;
+    transition: background-image 1s ease-in-out;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: background-image 1s ease-in-out;
+}
+
+
+/* Hero Section 
 .hero {
     height: 70vh;
     background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
@@ -203,6 +220,7 @@ p {
     color: white;
     position: relative;
 }
+    */
 
 .hero-content {
     max-width: 800px;
@@ -479,10 +497,28 @@ p {
 
 /* Contact Preview Section */
 .contact-preview {
+    position: relative;
     padding: 100px 0;
-    background: linear-gradient(135deg, #0A0A33 0%, #303078 100%);
+    z-index: 1;
+    /* background: linear-gradient(135deg, #0A0A33 0%, #303078 100%); */
+    background-image: url('../images/1820216611568229.jpg'); 
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     color: white;
+    overflow: hidden;
 }
+
+.contact-preview::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* 50% dark overlay */
+    z-index: -1;
+}
+
 
 .contact-content {
     display: grid;
@@ -510,7 +546,7 @@ p {
 }
 
 .contact-item p {
-    color: rgba(255, 255, 255, 0.9);
+    color: white;
     margin: 0;
 }
 
@@ -530,8 +566,9 @@ p {
 
 /* Footer */
 .footer {
-    background: white;
-    color: #1a1a1a;
+    
+   background: #5DADEC /*linear-gradient(135deg, #0A0A33 0%, #303078 100%)*/;
+    color: white;
     padding: 60px 0 20px;
 }
 
@@ -558,7 +595,7 @@ p {
 }
 
 .footer-section h4 {
-    color: #1a1a1a;
+    color: white;
     margin-bottom: 1.5rem;
     font-size: 1.2rem;
 }
@@ -572,13 +609,13 @@ p {
 }
 
 .footer-section ul li a {
-    color: #1a1a1a;
+    color: white;
     text-decoration: none;
     transition: color 0.3s ease;
 }
 
 .footer-section ul li a:hover {
-    color: #5DADEC;
+    color: #0A0A33;
 }
 
 .social-links {
@@ -590,23 +627,23 @@ p {
 .social-links a {
     width: 40px;
     height: 40px;
-    background: #333;
+    background: white;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: #333;
     text-decoration: none;
     transition: all 0.3s ease;
 }
 
 .social-links a:hover {
-    background: #5DADEC;
+    background: white;
     transform: translateY(-2px);
 }
 
 .footer-bottom {
-    border-top: 1px solid #333;
+    border-top: 1px solid white;
     padding-top: 2rem;
     text-align: center;
     color: rgba(255, 255, 255, 0.6);
