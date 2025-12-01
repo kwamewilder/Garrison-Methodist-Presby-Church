@@ -1,3 +1,20 @@
+<?php
+require_once 'config.php';
+
+// Get active communities from database
+$communities = [];
+try {
+    $conn = getDBConnection();
+    $stmt = $conn->query("SELECT name, slug FROM communities WHERE status = 'active' ORDER BY display_order ASC");
+    $communities = $stmt->fetchAll();
+} catch(PDOException $e) {
+    error_log("Error fetching communities: " . $e->getMessage());
+    $communities = [];
+}
+
+// Get menu pages from database
+require_once 'includes/get_menu_pages.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,12 +23,20 @@
     <meta name="description" content="Welcome to Garrison Methodist Presbyterian Church. Join us for worship, fellowship, and spiritual growth. A community of faith, hope, and love serving God together.">
     <title>Garrison Methodist Presbyterian Church</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/scrolling-banner.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="icon" type="image/x-icon" href="./images/favicon.ico">
 
 </head>
 <body>
+    <!-- Scrolling Banner -->
+    <div id="scrolling-banner" class="scrolling-banner-container loading" data-page="homepage">
+        <div class="scrolling-banner">
+            <span class="banner-item">Loading announcements...</span>
+        </div>
+    </div>
+
     <!-- Header -->
     <header class="header">
         <nav class="navbar">
@@ -22,20 +47,36 @@
                 </div>
                 <ul class="nav-menu">
                     <li class="nav-item">
-                        <a href="index.html" class="nav-link active">Home</a>
+                        <a href="index.php" class="nav-link active">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a href="about.html" class="nav-link">About</a>
+                        <a href="about.php" class="nav-link">About</a>
                     </li>
                     <li class="nav-item">
-                        <a href="sermons.html" class="nav-link">Sermons</a>
+                        <a href="sermons.php" class="nav-link">Sermons</a>
                     </li>
                     <li class="nav-item">
-                        <a href="events.html" class="nav-link">Events</a>
+                        <a href="events.php" class="nav-link">Events</a>
                     </li>
                     <li class="nav-item">
-                        <a href="contact.html" class="nav-link">Contact</a>
+                        <a href="media.php" class="nav-link">Media</a>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a href="#" class="nav-link">Communities <i class="fas fa-chevron-down"></i></a>
+                        <ul class="dropdown-menu">
+                            <?php foreach ($communities as $community): ?>
+                                <li><a href="community.php?slug=<?php echo urlencode($community['slug']); ?>"><?php echo htmlspecialchars($community['name']); ?></a></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a href="contact.php" class="nav-link">Contact</a>
+                    </li>
+                    <?php foreach ($menuPages as $menuPage): ?>
+                        <li class="nav-item">
+                            <a href="page.php?slug=<?php echo urlencode($menuPage['slug']); ?>" class="nav-link"><?php echo htmlspecialchars($menuPage['title']); ?></a>
+                        </li>
+                    <?php endforeach; ?>
                 </ul>
                 <div class="hamburger">
                     <span class="bar"></span>
@@ -54,8 +95,8 @@
             <h1 class="hero-title">Welcome to Garrison Methodist Presbyterian Church</h1>
             <p class="hero-subtitle">A community of faith, hope, and love serving God together</p>
             <div class="hero-buttons">
-                <a href="contact.html" class="btn btn-primary">Join Us Sunday</a>
-                <a href="about.html" class="btn btn-secondary">Learn More</a>
+                <a href="contact.php" class="btn btn-primary">Join Us Sunday</a>
+                <a href="about.php" class="btn btn-secondary">Learn More</a>
             </div>
         </div>
         <div class="hero-scroll">
@@ -124,7 +165,7 @@
                             <span>Community focused</span>
                         </div>
                     </div>
-                    <a href="about.html" class="btn btn-primary">Our Story</a>
+                    <a href="about.php" class="btn btn-primary">Our Story</a>
                 </div>
                 <div class="welcome-image">
                     <img src="./images/1825375401006796.jpg" alt="Church Interior - a view of the pews and stained glass windows">
@@ -245,7 +286,7 @@
                 </div>
             </div>
             <div class="events-cta">
-                <a href="events.html" class="btn btn-primary">View All Events</a>
+                <a href="events.php" class="btn btn-primary">View All Events</a>
             </div>
         </div>
     </section>
@@ -281,7 +322,7 @@
                 <div class="contact-cta">
                     <h3>We'd Love to Meet You</h3>
                     <p>Come as you are and experience the love of Christ in our community</p>
-                    <a href="contact.html" class="btn btn-secondary">Get Directions</a>
+                    <a href="contact.php" class="btn btn-secondary">Get Directions</a>
                 </div>
             </div>
         </div>
@@ -307,10 +348,10 @@
                 <div class="footer-section">
                     <h4>Quick Links</h4>
                     <ul>
-                        <li><a href="about.html">About Us</a></li>
-                        <li><a href="sermons.html">Sermons</a></li>
-                        <li><a href="events.html">Events</a></li>
-                        <li><a href="contact.html">Contact</a></li>
+                        <li><a href="about.php">About Us</a></li>
+                        <li><a href="sermons.php">Sermons</a></li>
+                        <li><a href="events.php">Events</a></li>
+                        <li><a href="contact.php">Contact</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
@@ -337,6 +378,7 @@
         </div>
     </footer>
 
+    <script src="js/scrolling-banner.js"></script>
     <script src="js/script.js"></script>
 </body>
 </html>

@@ -1,0 +1,24 @@
+# Protect admin directory
+# This file adds an extra layer of security to your admin panel
+
+# Prevent directory listing
+Options -Indexes
+
+# Protect sensitive files
+<FilesMatch "\.(htaccess|htpasswd|ini|log|sh|sql|bak)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Limit PHP execution in uploads directory
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+
+# Optional: IP whitelist (uncomment and add your IPs)
+# <Limit GET POST>
+#     Order deny,allow
+#     Deny from all
+#     Allow from 127.0.0.1
+#     Allow from YOUR.IP.ADDRESS.HERE
+# </Limit>

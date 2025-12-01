@@ -1,0 +1,19 @@
+# Protect uploads directory
+
+# Prevent PHP execution in uploads
+<FilesMatch "\.ph(p[3-6]?|tml)$">
+    Order Deny,Allow
+    Deny from all
+</FilesMatch>
+
+# Prevent access to .htaccess
+<Files .htaccess>
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+# Allow only specific file types
+<FilesMatch "\.(jpg|jpeg|png|gif|pdf|doc|docx|xls|xlsx|mp3|mp4)$">
+    Order Allow,Deny
+    Allow from all
+</FilesMatch>

@@ -105,7 +105,7 @@ p {
 /* Header */
 .header {
     position: fixed;
-    top: 0;
+    top: 46px; /* Height of the scrolling banner + padding */
     width: 100%;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
@@ -191,6 +191,72 @@ p {
     transition: 0.3s;
 }
 
+/* Dropdown Menu Styles */
+.nav-item.dropdown {
+    position: relative;
+}
+
+.nav-item.dropdown > .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.nav-item.dropdown > .nav-link::after {
+    display: none !important;
+}
+
+.nav-item.dropdown > .nav-link i {
+    font-size: 0.75rem;
+    transition: transform 0.3s ease;
+}
+
+.nav-item.dropdown:hover > .nav-link i {
+    transform: rotate(180deg);
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    min-width: 220px;
+    list-style: none;
+    padding: 0.5rem 0;
+    margin-top: 0.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.nav-item.dropdown:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-menu li {
+    margin: 0;
+}
+
+.dropdown-menu a {
+    display: block;
+    padding: 0.75rem 1.5rem;
+    color: #333;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.dropdown-menu a:hover {
+    background: linear-gradient(135deg, #5DADEC 0%, #73b7ea 100%);
+    color: white;
+    padding-left: 2rem;
+}
 
 .hero {
     height: 70vh;
@@ -1307,6 +1373,32 @@ p {
         margin: 1rem 0;
     }
 
+    /* Mobile Dropdown Styles */
+    .nav-item.dropdown {
+        position: relative;
+    }
+
+    .dropdown-menu {
+        position: static;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        box-shadow: none;
+        background: #f8f9fa;
+        margin-top: 0.5rem;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+
+    .nav-item.dropdown.active .dropdown-menu {
+        max-height: 600px;
+    }
+
+    .nav-item.dropdown > .nav-link {
+        cursor: pointer;
+    }
+
     .hero-title {
         font-size: 2.5rem;
     }
@@ -1473,5 +1565,145 @@ p {
 
     .event-info {
         padding: 1.5rem;
+    }
+}
+
+/* Community Pages Styles */
+.community-content {
+    padding: 4rem 0;
+    background: #f8f9fa;
+}
+
+.content-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 3rem;
+}
+
+.content-main {
+    background: white;
+    padding: 3rem;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+}
+
+.content-main h2 {
+    color: #0A0A33;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 3px solid #5DADEC;
+}
+
+.content-main h3 {
+    color: #333;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+.content-main ul {
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.content-main ul li {
+    margin-bottom: 0.8rem;
+    line-height: 1.7;
+}
+
+.content-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.info-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.info-card h3 {
+    color: #0A0A33;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #5DADEC;
+    font-size: 1.3rem;
+}
+
+.info-card p {
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.info-card i {
+    color: #5DADEC;
+}
+
+.info-card ul {
+    list-style: none;
+    padding: 0;
+}
+
+.info-card ul li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.info-card ul li:last-child {
+    border-bottom: none;
+}
+
+.info-card ul li::before {
+    content: '✓';
+    color: #5DADEC;
+    font-weight: bold;
+    margin-right: 0.5rem;
+}
+
+.info-card .btn {
+    margin-top: 1rem;
+    width: 100%;
+    text-align: center;
+}
+
+@media (max-width: 968px) {
+    .content-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .content-main {
+        padding: 2rem;
+    }
+
+    .info-card {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .community-content {
+        padding: 2rem 0;
+    }
+
+    .content-main {
+        padding: 1.5rem;
+    }
+
+    .content-main h2 {
+        font-size: 1.8rem;
+    }
+
+    .content-main h3 {
+        font-size: 1.4rem;
     }
 }

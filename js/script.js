@@ -7,8 +7,27 @@ hamburger.addEventListener('click', () => {
     navMenu.classList.toggle('active');
 });
 
-// Close mobile menu when clicking on a link
-document.querySelectorAll('.nav-link').forEach(n => n.addEventListener('click', () => {
+// Dropdown menu functionality for mobile
+document.querySelectorAll('.nav-item.dropdown > .nav-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+        // Only prevent default and toggle on mobile
+        if (window.innerWidth <= 768) {
+            e.preventDefault();
+            const dropdown = link.parentElement;
+            dropdown.classList.toggle('active');
+        }
+    });
+});
+
+// Close mobile menu when clicking on a dropdown link (not the parent)
+document.querySelectorAll('.dropdown-menu a').forEach(n => n.addEventListener('click', () => {
+    hamburger.classList.remove('active');
+    navMenu.classList.remove('active');
+    document.querySelectorAll('.nav-item.dropdown').forEach(d => d.classList.remove('active'));
+}));
+
+// Close mobile menu when clicking on a regular nav link
+document.querySelectorAll('.nav-link:not(.dropdown .nav-link)').forEach(n => n.addEventListener('click', () => {
     hamburger.classList.remove('active');
     navMenu.classList.remove('active');
 }));
@@ -138,9 +157,9 @@ window.addEventListener('scroll', () => {
         hero.style.transform = `translateY(${scrolled * 0.5}px)`;
     }
 
-    // Add active state to navigation based on scroll position
+    // Add active state to navigation based on scroll position (only for anchor links with actual IDs)
     const sections = document.querySelectorAll('section[id]');
-    const navLinks = document.querySelectorAll('.nav-link');
+    const navLinks = document.querySelectorAll('.nav-link[href^="#"]:not([href="#"])');
 
     let current = '';
     sections.forEach(section => {
