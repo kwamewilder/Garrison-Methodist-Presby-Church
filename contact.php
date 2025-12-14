@@ -1,14 +1,46 @@
 <?php
 require_once "config.php";
+require_once "includes/block_renderer.php";
 require_once "includes/get_communities.php";
 require_once "includes/get_menu_pages.php";
+require_once "includes/get_settings.php";
+
+$currentPage = 'contact';
+$serviceSunday = getSetting('sunday_service_time', '09:00 AM');
+$serviceTuesday = getSetting('tuesday_service_time', '9:00 AM');
+$serviceCounselling = getSetting('counselling_time', '14:00 AM');
+$churchName = getSetting('church_name', 'Garrison Methodist Presbyterian Church');
+$churchAddress = getSetting('church_address', 'Burma Camp, Accra');
+$churchPhone = getSetting('church_phone', '(+233) 243-3689');
+$churchEmail = getSetting('church_email', 'info@garrisonmpc.org');
+$facebookUrl = getSetting('facebook_url', 'https://www.facebook.com/gmpcburmacamp');
+$youtubeUrl = getSetting('youtube_url', 'https://www.youtube.com/@gmpcburmacamp3405');
+$tiktokUrl = getSetting('tiktok_url', 'https://www.tiktok.com/@gmpcburmacamp');
+
+// Try to load editable content from pages table (slug: contact)
+$contactPageContent = '';
+$contactMetaDescription = "Contact Garrison Methodist Presbyterian Church. Find our address, phone number, email, and service times. We'd love to hear from you.";
+try {
+    $conn = getDBConnection();
+    $stmt = $conn->prepare("SELECT title, meta_description, content FROM pages WHERE slug = ? AND status = 'active' LIMIT 1");
+    $stmt->execute(['contact']);
+    $pageRow = $stmt->fetch();
+    if ($pageRow) {
+        $contactPageContent = render_blocks($pageRow['content']);
+        if (!empty($pageRow['meta_description'])) {
+            $contactMetaDescription = $pageRow['meta_description'];
+        }
+    }
+} catch (PDOException $e) {
+    error_log("Contact page fetch error: " . $e->getMessage());
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Contact Garrison Methodist Presbyterian Church. Find our address, phone number, email, and service times. We'd love to hear from you.">
+    <meta name="description" content="<?php echo htmlspecialchars($contactMetaDescription); ?>">
     <title>Contact Us - Garrison Methodist Presbyterian Church</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/scrolling-banner.css">
@@ -25,49 +57,7 @@ require_once "includes/get_menu_pages.php";
     </div>
 
     <!-- Header -->
-    <header class="header">
-        <nav class="navbar">
-            <div class="nav-container">
-                <div class="nav-logo">
-                    <img src="images/logo.png" alt="GMPC Logo" class="logo-img">
-                    <span>Garrison Methodist Presbyterian Church</span>
-                </div>
-                <ul class="nav-menu">
-                    <li class="nav-item">
-                        <a href="index.php" class="nav-link">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="about.php" class="nav-link">About</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="sermons.php" class="nav-link">Sermons</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="events.php" class="nav-link">Events</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="media.php" class="nav-link">Media</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a href="#" class="nav-link">Communities <i class="fas fa-chevron-down"></i></a>
-                        <ul class="dropdown-menu">
-                            <?php foreach ($communities as $community): ?>
-                                <li><a href="community.php?slug=<?php echo urlencode($community['slug']); ?>"><?php echo htmlspecialchars($community['name']); ?></a></li>
-                            <?php endforeach; ?>
-                        </ul>
-                    </li>
-                    <li class="nav-item">
-                        <a href="contact.php" class="nav-link active">Contact</a>
-                    </li>
-                </ul>
-                <div class="hamburger">
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                </div>
-            </div>
-        </nav>
-    </header>
+    <?php include 'includes/navbar.php'; ?>
 
     <!-- Page Header -->
     <section class="page-header">
@@ -77,136 +67,19 @@ require_once "includes/get_menu_pages.php";
         </div>
     </section>
 
-    <!-- Contact Information -->
-    <section class="contact-info-section">
+    <section class="contact-hero contact-hero--cms">
+        <div class="contact-hero__overlay"></div>
         <div class="container">
-            <div class="contact-grid">
-                <div class="contact-details">
-                    <h2>Get in Touch</h2>
-                    <p>Whether you're looking for spiritual guidance, want to learn more about our church, or need prayer, we're here for you.</p>
-                    
-                    <div class="contact-items">
-                        <div class="contact-item-large">
-                            <div class="contact-icon">
-                                <i class="fas fa-map-marker-alt"></i>
-                            </div>
-                            <div class="contact-text">
-                                <h4>Address</h4>
-                                <p>Garrison Methodist Presby Church<br>Burma Camp, Accra</p>
-                            </div>
+            <div class="contact-hero__content contact-hero__content--single">
+                <div class="contact-cms-card">
+                    <?php if ($contactPageContent): ?>
+                        <div class="contact-cms-body">
+                            <?php echo $contactPageContent; ?>
                         </div>
-                        
-                        <div class="contact-item-large">
-                            <div class="contact-icon">
-                                <i class="fas fa-phone"></i>
-                            </div>
-                            <div class="contact-text">
-                                <h4>Phone</h4>
-                                <p>(+233) 243-3689</p>
-                                <small>Monday - Friday: 9:00 AM - 5:00 PM</small>
-                            </div>
-                        </div>
-                        
-                        <div class="contact-item-large">
-                            <div class="contact-icon">
-                                <i class="fas fa-envelope"></i>
-                            </div>
-                            <div class="contact-text">
-                                <h4>Email</h4>
-                                <p>info@garrisonmpc.org</p>
-                                <small>We'll respond within 24 hours</small>
-                            </div>
-                        </div>
-                        
-                        <div class="contact-item-large">
-                            <div class="contact-icon">
-                                <i class="fas fa-clock"></i>
-                            </div>
-                            <div class="contact-text">
-                                <h4>Service Times</h4>
-                                <p>Sunday School: 10:00 AM<br>
-                                Morning Worship: 9:00 AM<br>
-                                Contemporary Service: 11:00 AM</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="social-section">
-                        <h4>Follow Us</h4>
-                        <div class="social-links-large">
-                            <a href="https://www.facebook.com/gmpcburmacamp" target="_blank"><i class="fab fa-facebook"></i> Facebook</a>
-                            <a href="https://www.youtube.com/@gmpcburmacamp3405" target="_blank"><i class="fab fa-youtube"></i> YouTube</a>
-                             <a href="https://www.tiktok.com/@gmpcburmacamp" target="_blank"><i class="fab fa-tiktok"></i> TikTok</a>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="contact-form-section">
-                    <div class="contact-form-container">
-                        <h3>Send Us a Message</h3>
-                        <form class="contact-form">
-                            <div class="form-group">
-                                <label for="name">Full Name</label>
-                                <input type="text" id="name" name="name" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="email">Email Address</label>
-                                <input type="email" id="email" name="email" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="phone">Phone Number</label>
-                                <input type="tel" id="phone" name="phone">
-                            </div>
-                            <div class="form-group">
-                                <label for="subject">Subject</label>
-                                <select id="subject" name="subject" required>
-                                    <option value="">Select a topic</option>
-                                    <option value="general">General Inquiry</option>
-                                    <option value="prayer">Prayer Request</option>
-                                    <option value="visit">Planning a Visit</option>
-                                    <option value="ministry">Ministry Information</option>
-                                    <option value="pastoral">Pastoral Care</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="message">Message</label>
-                                <textarea id="message" name="message" rows="5" required></textarea>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Send Message</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <!-- Map Section -->
-    <section class="map-section">
-        <div class="container">
-            <div class="section-header">
-                <h2>Find Us</h2>
-                <p>Located in the heart of Garrison, we're easy to find and there's plenty of parking</p>
-            </div>
-            <div class="map-container">
-                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3970.8233109485254!2d-0.16029207423717376!3d5.593108944387658!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xfdf9acfe0710c29%3A0xc2e94240a7ac8ee6!2sGarrison%20Methodist%20Presbyterian%20Church%2C%20Accra!5e0!3m2!1sen!2sgh!4v1752833604561!5m2!1sen!2sgh" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
-            </div>
-            <div class="directions-info">
-                <div class="directions-grid">
-                    <div class="direction-item">
-                        <i class="fas fa-car"></i>
-                        <h4>By Car</h4>
-                        <p>Free parking available in our lot behind the church. Additional street parking on Church Street.</p>
-                    </div>
-                    <div class="direction-item">
-                        <i class="fas fa-bus"></i>
-                        <h4>By Bus</h4>
-                        <p>Take A Burma Camp bus from Circle, Accra or 37 and alight at Supply or Air Force Bus stop. We're just a 3-minute walk from the station.</p>
-                    </div>
-                    <div class="direction-item">
-                        <i class="fas fa-wheelchair"></i>
-                        <h4>Accessibility</h4>
-                        <p>Our building is fully wheelchair accessible with ramps and accessible restrooms.</p>
-                    </div>
+                    <?php else: ?>
+                        <h2>Contact content coming soon</h2>
+                        <p>Please check back shortly for our latest contact details and directions.</p>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -218,14 +91,13 @@ require_once "includes/get_menu_pages.php";
                 <div class="footer-section">
                     <div class="footer-logo">
                         <img src="images/logo.png" alt="GMPC Logo" class="footer-logo-img">
-                        <span>Garrison Methodist Presbyterian Church</span>
+                        <span><?php echo htmlspecialchars($churchName); ?></span>
                     </div>
                     <p>A community of faith, hope, and love serving God together</p>
                     <div class="social-links">
-                        <a href="https://www.facebook.com/gmpcburmacamp" target="_blank"><i class="fab fa-facebook"></i></a>
-                     <!--   <a href="https://www.instagram.com/garrisonmethodistpresbyterianchurch" target="_blank"><i class="fab fa-instagram"></i></a> -->
-                        <a href="https://www.youtube.com/@gmpcburmacamp3405" target="_blank"><i class="fab fa-youtube"></i></a>
-                        <a href="https://www.tiktok.com/@gmpcburmacamp" target="_blank"><i class="fab fa-tiktok"></i></a>
+                        <?php if (!empty($facebookUrl)): ?><a href="<?php echo htmlspecialchars($facebookUrl); ?>" target="_blank"><i class="fab fa-facebook"></i></a><?php endif; ?>
+                        <?php if (!empty($youtubeUrl)): ?><a href="<?php echo htmlspecialchars($youtubeUrl); ?>" target="_blank"><i class="fab fa-youtube"></i></a><?php endif; ?>
+                        <?php if (!empty($tiktokUrl)): ?><a href="<?php echo htmlspecialchars($tiktokUrl); ?>" target="_blank"><i class="fab fa-tiktok"></i></a><?php endif; ?>
                     </div>
                 </div>
                 <div class="footer-section">
@@ -240,18 +112,18 @@ require_once "includes/get_menu_pages.php";
                 <div class="footer-section">
                     <h4>Service Times</h4>
                     <ul>
-                        <li>Sunday School: 09:00 AM</li>
-                        <li>Morning Worship: 9:00 AM</li>
-                        <li>Counselling Session: 14:00 AM</li>
+                        <li>Sunday School: <?php echo htmlspecialchars($serviceSunday); ?></li>
+                        <li>Tuesday Service: <?php echo htmlspecialchars($serviceTuesday); ?></li>
+                        <li>Counselling Session: <?php echo htmlspecialchars($serviceCounselling); ?></li>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>Contact Info</h4>
                     <ul>
-                        <li>Garrison Methodist Presby Church</li>
-                        <li>Burma Camp, Accra</li>
-                        <li>(+233) 243-3689</li>
-                        <li>info@garrisonmpc.org</li>
+                        <li><?php echo htmlspecialchars($churchName); ?></li>
+                        <li><?php echo htmlspecialchars($churchAddress); ?></li>
+                        <li><?php echo htmlspecialchars($churchPhone); ?></li>
+                        <li><?php echo htmlspecialchars($churchEmail); ?></li>
                     </ul>
                 </div>
             </div>

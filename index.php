@@ -1,19 +1,52 @@
 <?php
 require_once 'config.php';
+require_once 'includes/get_communities.php';
+require_once 'includes/get_menu_pages.php';
+require_once 'includes/get_settings.php';
 
-// Get active communities from database
-$communities = [];
+$currentPage = 'home';
+$serviceSunday = getSetting('sunday_service_time', '09:00 AM');
+$serviceTuesday = getSetting('tuesday_service_time', '9:00 AM');
+$serviceCounselling = getSetting('counselling_time', '14:00 AM');
+$churchName = getSetting('church_name', 'Garrison Methodist Presbyterian Church');
+$churchAddress = getSetting('church_address', 'Burma Camp, Accra');
+$churchPhone = getSetting('church_phone', '(+233) 243-3689');
+$churchEmail = getSetting('church_email', 'info@garrisonmpc.org');
+$facebookUrl = getSetting('facebook_url', 'https://www.facebook.com/gmpcburmacamp');
+$youtubeUrl = getSetting('youtube_url', 'https://www.youtube.com/@gmpcburmacamp3405');
+$tiktokUrl = getSetting('tiktok_url', 'https://www.tiktok.com/@gmpcburmacamp');
+
+$homepageEvents = [];
 try {
     $conn = getDBConnection();
-    $stmt = $conn->query("SELECT name, slug FROM communities WHERE status = 'active' ORDER BY display_order ASC");
-    $communities = $stmt->fetchAll();
-} catch(PDOException $e) {
-    error_log("Error fetching communities: " . $e->getMessage());
-    $communities = [];
+    $stmt = $conn->prepare("SELECT * FROM events WHERE status = 'published' AND event_date >= CURDATE() ORDER BY event_date ASC, event_time ASC LIMIT 3");
+    $stmt->execute();
+    $homepageEvents = $stmt->fetchAll();
+} catch (PDOException $e) {
+    error_log('Homepage events fetch error: ' . $e->getMessage());
 }
 
-// Get menu pages from database
-require_once 'includes/get_menu_pages.php';
+$latestArticles = [];
+try {
+    // reuse connection if available
+    if (!isset($conn)) {
+        $conn = getDBConnection();
+    }
+    $stmt = $conn->query("SELECT title, slug, excerpt, image_url, published_at, created_at FROM posts WHERE status = 'published' ORDER BY COALESCE(published_at, created_at) DESC LIMIT 6");
+    $latestArticles = $stmt->fetchAll();
+} catch (PDOException $e) {
+    error_log('Homepage articles fetch error: ' . $e->getMessage());
+}
+
+function homepageEventDay($date) {
+    return date('d', strtotime($date));
+}
+function homepageEventMonth($date) {
+    return date('M', strtotime($date));
+}
+function homepageEventTime($time) {
+    return $time ? date('g:i A', strtotime($time)) : 'TBD';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -27,6 +60,73 @@ require_once 'includes/get_menu_pages.php';
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="icon" type="image/x-icon" href="./images/favicon.ico">
+    <style>
+        .articles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+        }
+        .article-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 14px 32px rgba(15,23,42,0.1);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            text-decoration: none;
+            color: #0f172a;
+        }
+        .article-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 18px 40px rgba(15,23,42,0.12);
+            border-color: rgba(93,173,236,0.35);
+        }
+        .article-thumb {
+            position: relative;
+            height: 210px;
+            overflow: hidden;
+        }
+        .article-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .article-date-badge {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: #0b6623;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-weight: 800;
+            display: inline-flex;
+            gap: 10px;
+            align-items: center;
+            letter-spacing: 0.5px;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+        }
+        .article-date-badge .day { font-size: 1.2rem; }
+        .article-date-badge .month { font-size: 0.8rem; text-transform: uppercase; }
+        .article-body {
+            padding: 18px;
+        }
+        .article-body h3 {
+            margin: 0 0 10px 0;
+            font-size: 1rem;
+            color: #0f172a;
+            line-height: 1.4;
+            font-weight: 700;
+        }
+        .article-body p {
+            margin: 0;
+            color: #4b5563;
+            font-size: 0.94rem;
+        }
+    </style>
 
 </head>
 <body>
@@ -38,54 +138,7 @@ require_once 'includes/get_menu_pages.php';
     </div>
 
     <!-- Header -->
-    <header class="header">
-        <nav class="navbar">
-            <div class="nav-container">
-                <div class="nav-logo">
-                    <img src="images/logo.png" alt="GMPC Logo" class="logo-img">
-                    <span>Garrison Methodist Presbyterian Church</span>
-                </div>
-                <ul class="nav-menu">
-                    <li class="nav-item">
-                        <a href="index.php" class="nav-link active">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="about.php" class="nav-link">About</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="sermons.php" class="nav-link">Sermons</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="events.php" class="nav-link">Events</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="media.php" class="nav-link">Media</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a href="#" class="nav-link">Communities <i class="fas fa-chevron-down"></i></a>
-                        <ul class="dropdown-menu">
-                            <?php foreach ($communities as $community): ?>
-                                <li><a href="community.php?slug=<?php echo urlencode($community['slug']); ?>"><?php echo htmlspecialchars($community['name']); ?></a></li>
-                            <?php endforeach; ?>
-                        </ul>
-                    </li>
-                    <li class="nav-item">
-                        <a href="contact.php" class="nav-link">Contact</a>
-                    </li>
-                    <?php foreach ($menuPages as $menuPage): ?>
-                        <li class="nav-item">
-                            <a href="page.php?slug=<?php echo urlencode($menuPage['slug']); ?>" class="nav-link"><?php echo htmlspecialchars($menuPage['title']); ?></a>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-                <div class="hamburger">
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                </div>
-            </div>
-        </nav>
-    </header>
+    <?php include 'includes/navbar.php'; ?>
     <!-- Events Section -->
 
     <!-- Hero Section -->
@@ -174,71 +227,39 @@ require_once 'includes/get_menu_pages.php';
         </div>
     </section>
 
-    <!-- Ministries Section -->
+    <!-- Articles Section -->
     <section class="ministries">
         <div class="container">
             <div class="section-header">
-                <h2>Our Communities</h2>
-                <p>Discover ways to grow in faith and serve others</p>
+                <h2>Latest Articles</h2>
+                <p>Stay updated with news and stories from our church</p>
             </div>
-            <div class="ministries-grid">
-                <div class="ministry-card">
-                    <div class="ministry-image">
-                        <img src="./images/1820216611568229.jpg" alt="A group of young people laughing and talking in a circle.">
-                    </div>
-                    <div class="ministry-content">
-                        <h3>Youth Fellowship</h3>
-                        <p>Engaging programs for teens to grow in faith and friendship</p>
-                    </div>
+            <?php if (count($latestArticles) > 0): ?>
+                <div class="articles-grid">
+                    <?php foreach ($latestArticles as $article): 
+                        $date = $article['published_at'] ?: $article['created_at'];
+                        $day = date('d', strtotime($date));
+                        $month = date('M', strtotime($date));
+                        $img = !empty($article['image_url']) ? $article['image_url'] : 'images/placeholder-avatar.png';
+                    ?>
+                    <a class="article-card" href="post.php?slug=<?php echo urlencode($article['slug']); ?>">
+                        <div class="article-thumb">
+                            <img src="<?php echo htmlspecialchars($img); ?>" alt="<?php echo htmlspecialchars($article['title']); ?>">
+                            <div class="article-date-badge">
+                                <span class="day"><?php echo $day; ?></span>
+                                <span class="month"><?php echo strtoupper($month); ?></span>
+                            </div>
+                        </div>
+                        <div class="article-body">
+                            <h3><?php echo htmlspecialchars($article['title']); ?></h3>
+                            <p><?php echo htmlspecialchars($article['excerpt'] ?: 'Read more'); ?></p>
+                        </div>
+                    </a>
+                    <?php endforeach; ?>
                 </div>
-                <div class="ministry-card">
-                    <div class="ministry-image">
-                        <img src="./images/1821027567369115.jpg" alt="A group of people packing boxes of food for a food drive.">
-                    </div>
-                    <div class="ministry-content">
-                        <h3>Women's Fellowship</h3>
-                        <p>Serving our neighbors through various service projects</p>
-                    </div>
-                </div>
-                <div class="ministry-card">
-                    <div class="ministry-image">
-                        <img src="./images/1821027567369115.jpg" alt="A group of people packing boxes of food for a food drive.">
-                    </div>
-                    <div class="ministry-content">
-                        <h3>Men's Fellowship</h3>
-                        <p>Serving our neighbors through various service projects</p>
-                    </div>
-                </div>
-                <div class="ministry-card">
-                    <div class="ministry-image">
-                        <img src="https://images.pexels.com/photos/9577188/pexels-photo-9577188.jpeg?auto=compress&cs=tinysrgb&w=400" alt="A group of children sitting in a circle playing with blocks.">
-                    </div>
-                    <div class="ministry-content">
-                        <h3>Children Service</h3>
-                        <p>Fun and educational programs for kids of all ages</p>
-                    </div>
-                </div>
-                <div class="ministry-card">
-                    <div class="ministry-image">
-                        <img src="./images/1821027567369115.jpg" alt="A group of people packing boxes of food for a food drive.">
-                    </div>
-                    <div class="ministry-content">
-                        <h3>Singing Band</h3>
-                        <p>Serving our neighbors through various service projects</p>
-                    </div>
-                </div>
-                <div class="ministry-card">
-                    <div class="ministry-image">
-                        <img src="https://images.pexels.com/photos/7520351/pexels-photo-7520351.jpeg?auto=compress&cs=tinysrgb&w=400" alt="A choir singing in a church.">
-                    </div>
-                    <div class="ministry-content">
-                        <h3>Ark of Praise</h3>
-                        <p>Worship through song with our choir and praise team</p>
-                    </div>
-                </div>
-                
-                
-            </div>
+            <?php else: ?>
+                <p style="text-align:center; color:#666; padding:24px 0;">No articles yet. Check back soon.</p>
+            <?php endif; ?>
         </div>
     </section>
 
@@ -249,42 +270,31 @@ require_once 'includes/get_menu_pages.php';
                 <h2>Upcoming Events</h2>
                 <p>Join us for these special gatherings</p>
             </div>
-            <div class="events-grid">
-                <div class="event-card">
-                    <div class="event-date">
-                        <span class="day">15</span>
-                        <span class="month">Dec</span>
-                    </div>
-                    <div class="event-content">
-                        <h3>Christmas Concert</h3>
-                        <p class="event-time">7:00 PM</p>
-                        <p>Join our choir for a beautiful evening of Christmas music</p>
-                    </div>
+            <?php if (count($homepageEvents) > 0): ?>
+                <div class="events-grid">
+                    <?php foreach ($homepageEvents as $event): ?>
+                        <div class="event-card">
+                            <div class="event-date">
+                                <span class="day"><?php echo homepageEventDay($event['event_date']); ?></span>
+                                <span class="month"><?php echo homepageEventMonth($event['event_date']); ?></span>
+                            </div>
+                            <div class="event-content">
+                                <h3><?php echo htmlspecialchars($event['title']); ?></h3>
+                                <p class="event-time"><?php echo homepageEventTime($event['event_time']); ?></p>
+                                <?php if (!empty($event['location'])): ?>
+                                    <p><?php echo htmlspecialchars($event['location']); ?></p>
+                                <?php elseif (!empty($event['description'])): ?>
+                                    <p><?php echo htmlspecialchars(strip_tags(substr($event['description'], 0, 120))) . '...'; ?></p>
+                                <?php else: ?>
+                                    <p>We look forward to seeing you there.</p>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
-                <div class="event-card">
-                    <div class="event-date">
-                        <span class="day">22</span>
-                        <span class="month">Dec</span>
-                    </div>
-                    <div class="event-content">
-                        <h3>Christmas Eve Service</h3>
-                        <p class="event-time">6:00 PM</p>
-                        <p>Candlelight service celebrating the birth of Christ</p>
-                    </div>
-                </div>
-                <div class="event-card">
-                    <div class="event-date">
-                        <span class="day">01</span>
-                        <span class="month">Jan</span>
-                    </div>
-                    <div class="event-content">
-                        <h3>New Year Prayer Service</h3>
-                        <p class="event-time">10:00 AM</p>
-                        <p>Start the new year with prayer and reflection</p>
-                    </div>
-                    
-                </div>
-            </div>
+            <?php else: ?>
+                <p style="text-align:center; color:#666; padding:30px 0;">No upcoming events at the moment. Please check back soon.</p>
+            <?php endif; ?>
             <div class="events-cta">
                 <a href="events.php" class="btn btn-primary">View All Events</a>
             </div>
@@ -335,14 +345,13 @@ require_once 'includes/get_menu_pages.php';
                 <div class="footer-section">
                     <div class="footer-logo">
                         <img src="images/logo.png" alt="GMPC Logo" class="footer-logo-img">
-                        <span>Garrison Methodist Presbyterian Church</span>
+                        <span><?php echo htmlspecialchars($churchName); ?></span>
                     </div>
                     <p>A community of faith, hope, and love serving God together</p>
                     <div class="social-links">
-                        <a href="https://www.facebook.com/gmpcburmacamp" target="_blank"><i class="fab fa-facebook"></i></a>
-                     <!--   <a href="https://www.instagram.com/garrisonmethodistpresbyterianchurch" target="_blank"><i class="fab fa-instagram"></i></a> -->
-                        <a href="https://www.youtube.com/@gmpcburmacamp3405" target="_blank"><i class="fab fa-youtube"></i></a>
-                        <a href="https://www.tiktok.com/@gmpcburmacamp" target="_blank"><i class="fab fa-tiktok"></i></a>
+                        <?php if (!empty($facebookUrl)): ?><a href="<?php echo htmlspecialchars($facebookUrl); ?>" target="_blank"><i class="fab fa-facebook"></i></a><?php endif; ?>
+                        <?php if (!empty($youtubeUrl)): ?><a href="<?php echo htmlspecialchars($youtubeUrl); ?>" target="_blank"><i class="fab fa-youtube"></i></a><?php endif; ?>
+                        <?php if (!empty($tiktokUrl)): ?><a href="<?php echo htmlspecialchars($tiktokUrl); ?>" target="_blank"><i class="fab fa-tiktok"></i></a><?php endif; ?>
                     </div>
                 </div>
                 <div class="footer-section">
@@ -357,18 +366,18 @@ require_once 'includes/get_menu_pages.php';
                 <div class="footer-section">
                     <h4>Service Times</h4>
                     <ul>
-                        <li>Sunday School: 09:00 AM</li>
-                        <li>Morning Worship: 9:00 AM</li>
-                        <li>Counselling Session: 14:00 AM</li>
+                        <li>Sunday School: <?php echo htmlspecialchars($serviceSunday); ?></li>
+                        <li>Tuesday Service: <?php echo htmlspecialchars($serviceTuesday); ?></li>
+                        <li>Counselling Session: <?php echo htmlspecialchars($serviceCounselling); ?></li>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>Contact Info</h4>
                     <ul>
-                        <li>Garrison Methodist Presby Church</li>
-                        <li>Burma Camp, Accra</li>
-                        <li>(+233) 243-3689</li>
-                        <li>info@garrisonmpc.org</li>
+                        <li><?php echo htmlspecialchars($churchName); ?></li>
+                        <li><?php echo htmlspecialchars($churchAddress); ?></li>
+                        <li><?php echo htmlspecialchars($churchPhone); ?></li>
+                        <li><?php echo htmlspecialchars($churchEmail); ?></li>
                     </ul>
                 </div>
             </div>
