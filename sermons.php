@@ -2,6 +2,20 @@
 require_once 'config.php';
 require_once "includes/get_communities.php";
 require_once "includes/get_menu_pages.php";
+require_once "includes/block_renderer.php";
+require_once "includes/get_settings.php";
+
+$currentPage = 'sermons';
+$serviceSunday = getSetting('sunday_service_time', '09:00 AM');
+$serviceTuesday = getSetting('tuesday_service_time', '9:00 AM');
+$serviceCounselling = getSetting('counselling_time', '14:00 AM');
+$churchName = getSetting('church_name', 'Garrison Methodist Presbyterian Church');
+$churchAddress = getSetting('church_address', 'Burma Camp, Accra');
+$churchPhone = getSetting('church_phone', '(+233) 243-3689');
+$churchEmail = getSetting('church_email', 'info@garrisonmpc.org');
+$facebookUrl = getSetting('facebook_url', 'https://www.facebook.com/gmpcburmacamp');
+$youtubeUrl = getSetting('youtube_url', 'https://www.youtube.com/@gmpcburmacamp3405');
+$tiktokUrl = getSetting('tiktok_url', 'https://www.tiktok.com/@gmpcburmacamp');
 
 // Sanitize input helper
 function sanitizeInput($data) {
@@ -11,7 +25,6 @@ function sanitizeInput($data) {
 // Get sermons from database
 $featuredSermon = null;
 $sermons = [];
-$menuPages = [];
 
 try {
     $conn = getDBConnection();
@@ -45,15 +58,6 @@ try {
     $seriesStmt = $conn->query("SELECT DISTINCT series FROM sermons WHERE series IS NOT NULL AND series != '' AND status = 'published' ORDER BY series");
     $seriesList = $seriesStmt->fetchAll();
 
-    // Get menu pages for navigation
-    try {
-        $stmt = $conn->query("SELECT title, page_slug FROM pages WHERE status = 'published' ORDER BY id ASC LIMIT 5");
-        $menuPages = $stmt->fetchAll();
-    } catch(PDOException $e) {
-        error_log("Error fetching menu pages: " . $e->getMessage());
-        $menuPages = [];
-    }
-
 } catch(PDOException $e) {
     error_log("Error fetching sermons: " . $e->getMessage());
     $featuredSermon = null;
@@ -66,7 +70,7 @@ function formatDate($date) {
     return date('F j, Y', strtotime($date));
 }
 
-// Helper function to extract YouTube video ID
+    // Helper function to extract YouTube video ID
 function getYouTubeId($url) {
     if (empty($url)) return null;
     preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})/i', $url, $match);
@@ -86,6 +90,65 @@ function getYouTubeId($url) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="icon" type="image/x-icon" href="./images/favicon.ico">
     <style>
+        /* Page polish */
+        .featured-sermon {
+            background: linear-gradient(135deg, rgba(10,10,51,0.05), rgba(93,173,236,0.06));
+        }
+        .featured-content {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+            gap: 24px;
+            padding: 28px;
+            border-radius: 18px;
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+            position: relative;
+            overflow: hidden;
+        }
+        .featured-sermon .featured-content {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .featured-content::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 18px;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(93,173,236,0.4), rgba(10,10,51,0.2));
+            mask:
+                linear-gradient(#fff 0 0) content-box,
+                linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+        .sermon-video {
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 16px 36px rgba(15, 23, 42, 0.18);
+            transition: transform 0.45s ease, box-shadow 0.45s ease;
+            cursor: pointer;
+            margin-bottom: 14px;
+        }
+        .sermon-video:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 42px rgba(15, 23, 42, 0.22);
+        }
+        .sermon-info {
+            align-self: center;
+            animation: fadeUp 0.8s ease;
+        }
+        .sermon-info h2 {
+            font-size: 2rem;
+            line-height: 1.3;
+            margin-bottom: 10px;
+        }
+        .sermon-info .sermon-speaker {
+            color: #4b5563;
+            font-weight: 600;
+        }
+
         .filter-buttons {
             display: flex;
             gap: 10px;
@@ -94,20 +157,23 @@ function getYouTubeId($url) {
             justify-content: center;
         }
         .filter-btn {
-            padding: 10px 20px;
-            border: 2px solid #5DADEC;
-            background: white;
-            color: #5DADEC;
-            border-radius: 25px;
+            padding: 12px 22px;
+            border: 1px solid #d5deeb;
+            background: #f7fafc;
+            color: #0A0A33;
+            border-radius: 999px;
             cursor: pointer;
             transition: all 0.3s ease;
             text-decoration: none;
             font-weight: 500;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
         }
         .filter-btn:hover,
         .filter-btn.active {
-            background: #5DADEC;
+            background: linear-gradient(135deg, #5DADEC, #73b7ea);
             color: white;
+            border-color: transparent;
+            box-shadow: 0 14px 28px rgba(93, 173, 236, 0.24);
         }
         .sermon-meta {
             display: flex;
@@ -129,21 +195,25 @@ function getYouTubeId($url) {
             display: flex;
             gap: 10px;
             margin-top: 15px;
+            flex-wrap: wrap;
         }
         .media-link {
             display: inline-flex;
             align-items: center;
             gap: 5px;
             padding: 8px 15px;
-            background: #5DADEC;
+            background: #0A0A33;
             color: white;
             text-decoration: none;
-            border-radius: 5px;
+            border-radius: 10px;
             transition: all 0.3s ease;
+            box-shadow: 0 12px 26px rgba(10, 10, 51, 0.25);
+            border: 1px solid rgba(255,255,255,0.05);
         }
         .media-link:hover {
-            background: #4a9dd8;
-            transform: translateY(-2px);
+            background: #5DADEC;
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: 0 14px 30px rgba(93, 173, 236, 0.28);
         }
         .no-sermons {
             text-align: center;
@@ -237,7 +307,9 @@ function getYouTubeId($url) {
             height: 100%;
             position: relative;
             overflow: hidden;
-            transition: transform 0.3s ease;
+            transition: transform 0.35s ease;
+            height: 220px;
+            cursor: pointer;
         }
         .sermon-thumbnail:hover {
             transform: scale(1.02);
@@ -248,7 +320,8 @@ function getYouTubeId($url) {
             border-radius: 10px 10px 0 0;
         }
         .play-button {
-            transition: all 0.3s ease;
+            transition: all 0.35s ease;
+            box-shadow: 0 14px 30px rgba(93, 173, 236, 0.35);
         }
         .sermon-thumbnail:hover .play-button {
             transform: translate(-50%, -50%) scale(1.1);
@@ -269,6 +342,82 @@ function getYouTubeId($url) {
         .sermon-video:hover img {
             opacity: 0.95;
         }
+
+        /* Cards */
+        .series-grid {
+            gap: 24px;
+        }
+        .sermon-card {
+            background: #ffffff;
+            border-radius: 14px !important;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 14px 30px rgba(15, 23, 42, 0.1) !important;
+            overflow: hidden;
+            transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+            animation: fadeUp 0.7s ease;
+        }
+        .sermon-card.is-hidden {
+            display: none;
+        }
+        .sermon-card:hover {
+            transform: translateY(-6px) scale(1.005);
+            box-shadow: 0 18px 38px rgba(15, 23, 42, 0.16);
+            border-color: rgba(93,173,236,0.35);
+        }
+        .sermon-details {
+            padding: 20px !important;
+        }
+        .sermon-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .sermon-date {
+            color: #5DADEC !important;
+        }
+        .sermon-details h3 {
+            margin: 0 0 12px 0;
+            font-size: 1.35rem;
+            color: #0f172a;
+            line-height: 1.45;
+        }
+        .sermon-speaker {
+            color: #4b5563;
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+        }
+        .sermon-meta-item {
+            margin: 0 0 12px 0;
+            color: #555;
+            font-size: 0.95rem;
+        }
+        .sermon-series-label {
+            color: #5DADEC;
+            font-size: 0.92rem;
+            margin: 0 0 12px 0;
+            font-weight: 600;
+        }
+        .media-links button.media-link {
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Modal polish */
+        .sermon-modal {
+            backdrop-filter: blur(4px);
+        }
+        .sermon-modal-content {
+            background: #0b1024;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+        }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -280,55 +429,7 @@ function getYouTubeId($url) {
     </div>
 
     <!-- Header -->
-    <header class="header">
-        <nav class="navbar">
-            <div class="nav-container">
-                <div class="nav-logo">
-                    <img src="images/logo.png" alt="GMPC Logo" class="logo-img">
-                    <span>Garrison Methodist Presbyterian Church</span>
-                </div>
-                <ul class="nav-menu">
-                    <li class="nav-item">
-                        <a href="index.php" class="nav-link">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="about.php" class="nav-link">About</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="sermons.php" class="nav-link active">Sermons</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="events.php" class="nav-link">Events</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a href="#" class="nav-link">Communities <i class="fas fa-chevron-down"></i></a>
-                        <ul class="dropdown-menu">
-                            <?php foreach ($communities as $community): ?>
-                                <li><a href="community.php?slug=<?php echo urlencode($community['slug']); ?>"><?php echo htmlspecialchars($community['name']); ?></a></li>
-                            <?php endforeach; ?>
-                        </ul>
-                    </li>
-                    <li class="nav-item">
-                        <a href="contact.php" class="nav-link">Contact</a>
-                    </li>
-                    <?php if (count($menuPages) > 0): ?>
-                        <?php foreach ($menuPages as $menuPage): ?>
-                            <li class="nav-item">
-                                <a href="page.php?slug=<?php echo urlencode($menuPage['page_slug']); ?>" class="nav-link">
-                                    <?php echo htmlspecialchars($menuPage['title']); ?>
-                                </a>
-                            </li>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </ul>
-                <div class="hamburger">
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                </div>
-            </div>
-        </nav>
-    </header>
+    <?php include 'includes/navbar.php'; ?>
 
     <!-- Page Header -->
     <section class="page-header">
@@ -342,8 +443,8 @@ function getYouTubeId($url) {
     <!-- Featured Sermon -->
     <section class="featured-sermon">
         <div class="container">
-            <div class="featured-content" style="display: block; max-width: 900px; margin: 0 auto;">
-                <div class="sermon-video" style="position: relative; cursor: pointer; margin-bottom: 30px;"
+            <div class="featured-content">
+                <div class="sermon-video"
                      onclick="<?php
                         if ($featuredSermon['video_url']) {
                             echo "openSermonVideo('" . htmlspecialchars($featuredSermon['video_url'], ENT_QUOTES) . "', '" . htmlspecialchars($featuredSermon['title'], ENT_QUOTES) . "')";
@@ -382,17 +483,14 @@ function getYouTubeId($url) {
                         <p class="sermon-meta-item" style="margin-bottom: 15px;"><i class="fas fa-book-open"></i> <?php echo htmlspecialchars($featuredSermon['scripture_reference']); ?></p>
                     <?php endif; ?>
                     <?php if (!empty($featuredSermon['description'])): ?>
-                        <p class="sermon-description" style="margin-bottom: 20px;"><?php echo htmlspecialchars($featuredSermon['description']); ?></p>
+                        <div class="sermon-description" style="margin-bottom: 20px;">
+                            <?php echo render_blocks($featuredSermon['description']); ?>
+                        </div>
                     <?php endif; ?>
                     <div class="media-links">
                         <?php if ($featuredSermon['audio_url']): ?>
                             <button onclick="openSermonAudio('<?php echo htmlspecialchars($featuredSermon['audio_url'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($featuredSermon['title'], ENT_QUOTES); ?>')" class="media-link" style="border: none; cursor: pointer;">
                                 <i class="fas fa-microphone"></i> Listen
-                            </button>
-                        <?php endif; ?>
-                        <?php if ($featuredSermon['video_url']): ?>
-                            <button onclick="openSermonVideo('<?php echo htmlspecialchars($featuredSermon['video_url'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($featuredSermon['title'], ENT_QUOTES); ?>')" class="media-link" style="border: none; cursor: pointer;">
-                                <i class="fas fa-video"></i> Watch
                             </button>
                         <?php endif; ?>
                     </div>
@@ -411,14 +509,15 @@ function getYouTubeId($url) {
             </div>
 
             <!-- Filter Buttons -->
-            <div class="filter-buttons">
-                <a href="sermons.php?series=all" class="filter-btn <?php echo $series === 'all' ? 'active' : ''; ?>">All Sermons</a>
+            <div class="filter-buttons" id="filterButtons">
+                <button type="button" class="filter-btn <?php echo $series === 'all' ? 'active' : ''; ?>" data-series="all">All Sermons</button>
                 <?php if (!empty($seriesList)): ?>
                     <?php foreach ($seriesList as $seriesItem): ?>
-                        <a href="sermons.php?series=<?php echo urlencode($seriesItem['series']); ?>"
-                           class="filter-btn <?php echo $series === $seriesItem['series'] ? 'active' : ''; ?>">
+                        <button type="button"
+                           class="filter-btn <?php echo $series === $seriesItem['series'] ? 'active' : ''; ?>"
+                           data-series="<?php echo htmlspecialchars($seriesItem['series']); ?>">
                             <?php echo htmlspecialchars($seriesItem['series']); ?>
-                        </a>
+                        </button>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </div>
@@ -426,9 +525,9 @@ function getYouTubeId($url) {
             <?php if (count($sermons) > 0): ?>
             <div class="series-grid">
                 <?php foreach ($sermons as $sermon): ?>
-                <div class="sermon-card" style="display: flex; flex-direction: column; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <div class="sermon-card" data-series="<?php echo htmlspecialchars($sermon['series'] ?? ''); ?>">
                     <!-- Thumbnail at Top -->
-                    <div class="sermon-thumbnail" style="cursor: pointer; position: relative; width: 100%; height: 220px; overflow: hidden;"
+                    <div class="sermon-thumbnail"
                          onclick="<?php
                             if ($sermon['video_url']) {
                                 echo "openSermonVideo('" . htmlspecialchars($sermon['video_url'], ENT_QUOTES) . "', '" . htmlspecialchars($sermon['title'], ENT_QUOTES) . "')";
@@ -471,27 +570,24 @@ function getYouTubeId($url) {
                         </p>
 
                         <?php if (!empty($sermon['scripture_reference'])): ?>
-                            <p class="sermon-meta-item" style="margin: 0 0 12px 0; color: #555; font-size: 0.95rem;">
+                            <p class="sermon-meta-item">
                                 <i class="fas fa-book-open" style="color: #5DADEC; margin-right: 5px;"></i> <?php echo htmlspecialchars($sermon['scripture_reference']); ?>
                             </p>
                         <?php endif; ?>
 
                         <?php if (!empty($sermon['series'])): ?>
-                            <p style="color: #5DADEC; font-size: 0.9rem; margin: 0 0 12px 0; font-weight: 500;">
+                            <p class="sermon-series-label">
                                 <i class="fas fa-folder"></i> Series: <?php echo htmlspecialchars($sermon['series']); ?>
                             </p>
                         <?php endif; ?>
 
                         <?php if (!empty($sermon['description'])): ?>
-                            <p class="sermon-description" style="color: #666; font-size: 0.95rem; line-height: 1.6; margin: 15px 0;"><?php echo htmlspecialchars($sermon['description']); ?></p>
+                            <div class="sermon-description">
+                                <?php echo render_blocks($sermon['description']); ?>
+                            </div>
                         <?php endif; ?>
 
-                        <div class="media-links" style="margin-top: 20px; display: flex; gap: 10px;">
-                            <?php if ($sermon['video_url']): ?>
-                                <button onclick="event.stopPropagation(); openSermonVideo('<?php echo htmlspecialchars($sermon['video_url'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($sermon['title'], ENT_QUOTES); ?>')" class="media-link" style="border: none; cursor: pointer;">
-                                    <i class="fas fa-video"></i> Watch
-                                </button>
-                            <?php endif; ?>
+                        <div class="media-links">
                             <?php if ($sermon['audio_url']): ?>
                                 <button onclick="event.stopPropagation(); openSermonAudio('<?php echo htmlspecialchars($sermon['audio_url'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($sermon['title'], ENT_QUOTES); ?>')" class="media-link" style="border: none; cursor: pointer;">
                                     <i class="fas fa-microphone"></i> Listen
@@ -522,7 +618,7 @@ function getYouTubeId($url) {
     </div>
 
     <!-- Audio Modal -->
-    <div class="sermon-modal" id="audioModal" onclick="closeAudioModal()">
+<div class="sermon-modal" id="audioModal" onclick="closeAudioModal()">
         <span class="sermon-modal-close">&times;</span>
         <div class="sermon-modal-content" onclick="event.stopPropagation()">
             <h3 id="audioModalTitle"></h3>
@@ -533,19 +629,46 @@ function getYouTubeId($url) {
         </div>
     </div>
 
+    <script>
+        // Client-side filtering to avoid page jump
+        (function() {
+            const buttons = document.querySelectorAll('#filterButtons .filter-btn');
+            const cards = Array.from(document.querySelectorAll('.sermon-card'));
+            const initial = "<?php echo htmlspecialchars($series ?? 'all'); ?>".toLowerCase();
+
+            function applyFilter(target) {
+                const key = (target || 'all').toLowerCase();
+                buttons.forEach(btn => {
+                    btn.classList.toggle('active', (btn.dataset.series || '').toLowerCase() === key);
+                });
+                cards.forEach(card => {
+                    const cardSeries = (card.dataset.series || '').toLowerCase();
+                    const show = key === 'all' || cardSeries === key;
+                    card.classList.toggle('is-hidden', !show);
+                });
+            }
+
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => applyFilter(btn.dataset.series));
+            });
+
+            applyFilter(initial || 'all');
+        })();
+    </script>
+
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
                     <div class="footer-logo">
                         <img src="images/logo.png" alt="GMPC Logo" class="footer-logo-img">
-                        <span>Garrison Methodist Presbyterian Church</span>
+                        <span><?php echo htmlspecialchars($churchName); ?></span>
                     </div>
                     <p>A community of faith, hope, and love serving God together</p>
                     <div class="social-links">
-                        <a href="https://www.facebook.com/gmpcburmacamp" target="_blank"><i class="fab fa-facebook"></i></a>
-                        <a href="https://www.youtube.com/@gmpcburmacamp3405" target="_blank"><i class="fab fa-youtube"></i></a>
-                        <a href="https://www.tiktok.com/@gmpcburmacamp" target="_blank"><i class="fab fa-tiktok"></i></a>
+                        <?php if (!empty($facebookUrl)): ?><a href="<?php echo htmlspecialchars($facebookUrl); ?>" target="_blank"><i class="fab fa-facebook"></i></a><?php endif; ?>
+                        <?php if (!empty($youtubeUrl)): ?><a href="<?php echo htmlspecialchars($youtubeUrl); ?>" target="_blank"><i class="fab fa-youtube"></i></a><?php endif; ?>
+                        <?php if (!empty($tiktokUrl)): ?><a href="<?php echo htmlspecialchars($tiktokUrl); ?>" target="_blank"><i class="fab fa-tiktok"></i></a><?php endif; ?>
                     </div>
                 </div>
                 <div class="footer-section">
@@ -560,18 +683,18 @@ function getYouTubeId($url) {
                 <div class="footer-section">
                     <h4>Service Times</h4>
                     <ul>
-                        <li>Sunday School: 09:00 AM</li>
-                        <li>Morning Worship: 9:00 AM</li>
-                        <li>Counselling Session: 14:00 AM</li>
+                        <li>Sunday School: <?php echo htmlspecialchars($serviceSunday); ?></li>
+                        <li>Tuesday Service: <?php echo htmlspecialchars($serviceTuesday); ?></li>
+                        <li>Counselling Session: <?php echo htmlspecialchars($serviceCounselling); ?></li>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>Contact Info</h4>
                     <ul>
-                        <li>Garrison Methodist Presby Church</li>
-                        <li>Burma Camp, Accra</li>
-                        <li>(+233) 243-3689</li>
-                        <li>info@garrisonmpc.org</li>
+                        <li><?php echo htmlspecialchars($churchName); ?></li>
+                        <li><?php echo htmlspecialchars($churchAddress); ?></li>
+                        <li><?php echo htmlspecialchars($churchPhone); ?></li>
+                        <li><?php echo htmlspecialchars($churchEmail); ?></li>
                     </ul>
                 </div>
             </div>

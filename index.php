@@ -2,6 +2,7 @@
 require_once 'config.php';
 require_once 'includes/get_communities.php';
 require_once 'includes/get_menu_pages.php';
+require_once 'includes/block_renderer.php';
 require_once 'includes/get_settings.php';
 
 $currentPage = 'home';
@@ -15,6 +16,30 @@ $churchEmail = getSetting('church_email', 'info@garrisonmpc.org');
 $facebookUrl = getSetting('facebook_url', 'https://www.facebook.com/gmpcburmacamp');
 $youtubeUrl = getSetting('youtube_url', 'https://www.youtube.com/@gmpcburmacamp3405');
 $tiktokUrl = getSetting('tiktok_url', 'https://www.tiktok.com/@gmpcburmacamp');
+$youtubeSubscribeUrl = $youtubeUrl
+    ? $youtubeUrl . (strpos($youtubeUrl, '?') === false ? '?sub_confirmation=1' : '&sub_confirmation=1')
+    : 'https://www.youtube.com/@gmpcburmacamp3405?sub_confirmation=1';
+
+$serviceDetails = [
+    [
+        'title' => 'Sunday Service',
+        'time' => $serviceSunday ?: 'TBD',
+        'meta' => 'Every Sunday • Main Auditorium',
+        'description' => 'Traditional and contemporary worship with prayer and the Word.'
+    ],
+    [
+        'title' => 'Tuesday Service',
+        'time' => $serviceTuesday ?: 'TBD',
+        'meta' => 'Every Tuesday • Main Auditorium',
+        'description' => 'Midweek fellowship, hymns, and encouragement for the journey.'
+    ],
+    [
+        'title' => 'Counselling Session',
+        'time' => $serviceCounselling ?: 'By appointment',
+        'meta' => 'Book through church office',
+        'description' => 'Personalised spiritual guidance, prayer, and support.'
+    ],
+];
 
 $homepageEvents = [];
 try {
@@ -46,6 +71,70 @@ function homepageEventMonth($date) {
 }
 function homepageEventTime($time) {
     return $time ? date('g:i A', strtotime($time)) : 'TBD';
+}
+function homepageEventTextFromBlocks($blocks) {
+    $parts = [];
+    foreach ($blocks as $block) {
+        $data = $block['data'] ?? [];
+        switch ($block['type'] ?? '') {
+            case 'heading':
+            case 'paragraph':
+                $parts[] = $data['text'] ?? '';
+                break;
+            case 'list':
+                if (!empty($data['items']) && is_array($data['items'])) {
+                    $parts = array_merge($parts, $data['items']);
+                }
+                break;
+            case 'quote':
+                if (!empty($data['text'])) {
+                    $parts[] = $data['text'];
+                }
+                if (!empty($data['caption'])) {
+                    $parts[] = $data['caption'];
+                }
+                break;
+            default:
+                if (!empty($data['text'])) {
+                    $parts[] = $data['text'];
+                }
+        }
+    }
+    $plain = trim(preg_replace('/\s+/', ' ', implode(' ', array_filter($parts))));
+    return $plain;
+}
+function homepageEventSummary($description, $limit = 140) {
+    $summary = '';
+
+    if (is_array($description)) {
+        $summary = homepageEventTextFromBlocks($description);
+    } elseif (is_string($description) && $description !== '') {
+        $decoded = json_decode($description, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $decoded = json_decode(html_entity_decode($description, ENT_QUOTES, 'UTF-8'), true);
+        }
+        if (json_last_error() === JSON_ERROR_NONE) {
+            if (isset($decoded['blocks']) && is_array($decoded['blocks'])) {
+                $summary = homepageEventTextFromBlocks($decoded['blocks']);
+            } elseif (is_array($decoded)) {
+                $summary = homepageEventTextFromBlocks($decoded);
+            }
+        }
+        if ($summary === '') {
+            $summary = strip_tags($description);
+        }
+    }
+
+    $summary = trim(preg_replace('/\s+/', ' ', $summary));
+    if ($summary === '') {
+        $summary = 'We look forward to seeing you there.';
+    }
+
+    if (strlen($summary) > $limit) {
+        $summary = rtrim(substr($summary, 0, $limit), " \t\n\r\0\x0B.,;") . '...';
+    }
+
+    return $summary;
 }
 ?>
 <!DOCTYPE html>
@@ -98,7 +187,7 @@ function homepageEventTime($time) {
             position: absolute;
             bottom: 12px;
             left: 12px;
-            background: #0b6623;
+            background: var(--gradient-primary);
             color: #fff;
             padding: 8px 12px;
             border-radius: 10px;
@@ -107,7 +196,7 @@ function homepageEventTime($time) {
             gap: 10px;
             align-items: center;
             letter-spacing: 0.5px;
-            box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+            box-shadow: 0 10px 24px rgba(15,23,42,0.25);
         }
         .article-date-badge .day { font-size: 1.2rem; }
         .article-date-badge .month { font-size: 0.8rem; text-transform: uppercase; }
@@ -165,33 +254,14 @@ function homepageEventTime($time) {
                 <p>Join us for worship, fellowship, and spiritual growth</p>
             </div>
             <div class="services-grid">
-                
-               
-                <div class="service-card">
-                    <div class="service-icon">
-                        <i class="fas fa-cross"></i>
+                <?php foreach ($serviceDetails as $service): ?>
+                    <div class="service-card">
+                        <h3><?php echo htmlspecialchars($service['title']); ?></h3>
+                        <p class="service-time"><i class="fas fa-clock"></i> <?php echo htmlspecialchars($service['time']); ?></p>
+                        <p class="service-meta"><?php echo htmlspecialchars($service['meta']); ?></p>
+                        <p><?php echo htmlspecialchars($service['description']); ?></p>
                     </div>
-                    <h3>Sunday Service</h3>
-                    <p class="service-time">09:00 AM</p>
-                    <p>Bible study for all ages</p>
-                </div>
-                <div class="service-card">
-                    <div class="service-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h3>Tuesday Morning Service</h3>
-                    <p class="service-time">9:00 AM</p>
-                    <p>Service with hymns and choir</p>
-                </div>
-
-                 <div class="service-card">
-                    <div class="service-icon">
-                        <i class="fas fa-heart"></i>
-                    </div>
-                    <h3>Counselling Session</h3>
-                    <p class="service-time">14:00 AM</p>
-                    <p>Modern worship with praise band</p>
-                </div>
+                <?php endforeach; ?>
             </div>
         </div>
     </section>
@@ -272,22 +342,34 @@ function homepageEventTime($time) {
             </div>
             <?php if (count($homepageEvents) > 0): ?>
                 <div class="events-grid">
-                    <?php foreach ($homepageEvents as $event): ?>
+                    <?php foreach ($homepageEvents as $event): 
+                        $eventImage = !empty($event['image_url'])
+                            ? $event['image_url']
+                            : 'https://images.pexels.com/photos/1587927/pexels-photo-1587927.jpeg?auto=compress&cs=tinysrgb&w=1200';
+                        $eventSummaryText = homepageEventSummary($event['description'] ?? '', 160);
+                    ?>
                         <div class="event-card">
-                            <div class="event-date">
-                                <span class="day"><?php echo homepageEventDay($event['event_date']); ?></span>
-                                <span class="month"><?php echo homepageEventMonth($event['event_date']); ?></span>
+                            <div class="event-thumb">
+                                <img src="<?php echo htmlspecialchars($eventImage); ?>" alt="<?php echo htmlspecialchars($event['title']); ?>">
+                                <div class="event-date-badge">
+                                    <span class="day"><?php echo homepageEventDay($event['event_date']); ?></span>
+                                    <span class="month"><?php echo homepageEventMonth($event['event_date']); ?></span>
+                                </div>
                             </div>
                             <div class="event-content">
+                                <p class="event-eyebrow">Upcoming gathering</p>
                                 <h3><?php echo htmlspecialchars($event['title']); ?></h3>
-                                <p class="event-time"><?php echo homepageEventTime($event['event_time']); ?></p>
-                                <?php if (!empty($event['location'])): ?>
-                                    <p><?php echo htmlspecialchars($event['location']); ?></p>
-                                <?php elseif (!empty($event['description'])): ?>
-                                    <p><?php echo htmlspecialchars(strip_tags(substr($event['description'], 0, 120))) . '...'; ?></p>
-                                <?php else: ?>
-                                    <p>We look forward to seeing you there.</p>
-                                <?php endif; ?>
+                                <div class="event-meta-chips">
+                                    <span class="event-chip"><i class="fas fa-clock"></i> <?php echo homepageEventTime($event['event_time']); ?></span>
+                                    <?php if (!empty($event['location'])): ?>
+                                        <span class="event-chip"><i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($event['location']); ?></span>
+                                    <?php endif; ?>
+                                </div>
+                                <p class="event-summary"><?php echo htmlspecialchars($eventSummaryText); ?></p>
+                                <div class="event-footer">
+                                    <span class="event-tag">All are welcome</span>
+                                    <a class="event-cta-link" href="events.php">See details <i class="fas fa-arrow-right"></i></a>
+                                </div>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -297,6 +379,30 @@ function homepageEventTime($time) {
             <?php endif; ?>
             <div class="events-cta">
                 <a href="events.php" class="btn btn-primary">View All Events</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- YouTube CTA -->
+    <section class="youtube-cta">
+        <div class="container">
+            <div class="youtube-card">
+                <div class="youtube-card__content">
+                    <div class="youtube-card__icon">
+                        <i class="fab fa-youtube"></i>
+                    </div>
+                    <div class="youtube-card__text">
+                        <p class="eyebrow">Watch & Connect</p>
+                        <h3>Join us on YouTube</h3>
+                        <p>Livestreams, sermons, and highlights from <?php echo htmlspecialchars($churchName); ?>.</p>
+                    </div>
+                </div>
+                <div class="youtube-card__actions">
+                    <a class="btn btn-secondary btn-light" href="<?php echo htmlspecialchars($youtubeUrl); ?>" target="_blank" rel="noopener">Visit Channel</a>
+                    <a class="btn btn-subscribe" href="<?php echo htmlspecialchars($youtubeSubscribeUrl); ?>" target="_blank" rel="noopener">Subscribe</a>
+                    <a class="btn btn-facebook" href="<?php echo htmlspecialchars($facebookUrl ?: 'https://www.facebook.com/gmpcburmacamp'); ?>" target="_blank" rel="noopener"><i class="fab fa-facebook-f"></i> Follow</a>
+                    <a class="btn btn-tiktok" href="<?php echo htmlspecialchars($tiktokUrl ?: 'https://www.tiktok.com/@gmpcburmacamp'); ?>" target="_blank" rel="noopener"><i class="fab fa-tiktok"></i> Follow</a>
+                </div>
             </div>
         </div>
     </section>

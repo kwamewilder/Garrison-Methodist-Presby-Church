@@ -131,9 +131,6 @@ $documentItems = array_filter($mediaItems, fn($item) => $item['file_type'] === '
                                 <h4><?php echo htmlspecialchars($media['title']); ?></h4>
                                 <span class="badge badge-info"><?php echo ucfirst($media['file_type']); ?></span>
                                 <div class="media-actions" style="margin-top: 10px;">
-                                    <button onclick="copyUrl('<?php echo htmlspecialchars($media['file_url']); ?>')" class="btn btn-sm btn-secondary">
-                                        <i class="fas fa-copy"></i> Copy URL
-                                    </button>
                                     <button onclick="editMedia(<?php echo $media['id']; ?>)" class="btn btn-sm btn-primary">
                                         <i class="fas fa-edit"></i> Edit
                                     </button>
@@ -162,9 +159,6 @@ $documentItems = array_filter($mediaItems, fn($item) => $item['file_type'] === '
                             <div class="media-info">
                                 <h4><?php echo htmlspecialchars($media['title']); ?></h4>
                                 <div class="media-actions" style="margin-top: 10px;">
-                                    <button onclick="copyUrl('<?php echo htmlspecialchars($media['file_url']); ?>')" class="btn btn-sm btn-secondary">
-                                        <i class="fas fa-copy"></i> Copy URL
-                                    </button>
                                     <button onclick="editMedia(<?php echo $media['id']; ?>)" class="btn btn-sm btn-primary">
                                         <i class="fas fa-edit"></i>
                                     </button>
@@ -201,12 +195,9 @@ $documentItems = array_filter($mediaItems, fn($item) => $item['file_type'] === '
                                     <td><code style="font-size: 0.85rem;"><?php echo htmlspecialchars(substr($media['file_url'], 0, 50)) . '...'; ?></code></td>
                                     <td><?php echo date('M d, Y', strtotime($media['created_at'])); ?></td>
                                     <td>
-                                        <button onclick="copyUrl('<?php echo htmlspecialchars($media['file_url']); ?>')" class="btn btn-sm btn-secondary">
-                                            <i class="fas fa-copy"></i> Copy
-                                        </button>
-                                        <button onclick="editMedia(<?php echo $media['id']; ?>)" class="btn btn-sm btn-primary">
-                                            <i class="fas fa-edit"></i> Edit
-                                        </button>
+                                    <button onclick="editMedia(<?php echo $media['id']; ?>)" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
                                         <button onclick="deleteMedia(<?php echo $media['id']; ?>, '<?php echo htmlspecialchars($media['title']); ?>')" class="btn btn-sm btn-danger">
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -241,9 +232,6 @@ $documentItems = array_filter($mediaItems, fn($item) => $item['file_type'] === '
                                     <td><code style="font-size: 0.85rem;"><?php echo htmlspecialchars(substr($media['file_url'], 0, 50)) . '...'; ?></code></td>
                                     <td><?php echo date('M d, Y', strtotime($media['created_at'])); ?></td>
                                     <td>
-                                        <button onclick="copyUrl('<?php echo htmlspecialchars($media['file_url']); ?>')" class="btn btn-sm btn-secondary">
-                                            <i class="fas fa-copy"></i> Copy
-                                        </button>
                                         <button onclick="editMedia(<?php echo $media['id']; ?>)" class="btn btn-sm btn-primary">
                                             <i class="fas fa-edit"></i> Edit
                                         </button>
@@ -281,9 +269,6 @@ $documentItems = array_filter($mediaItems, fn($item) => $item['file_type'] === '
                                     <td><code style="font-size: 0.85rem;"><?php echo htmlspecialchars(substr($media['file_url'], 0, 50)) . '...'; ?></code></td>
                                     <td><?php echo date('M d, Y', strtotime($media['created_at'])); ?></td>
                                     <td>
-                                        <button onclick="copyUrl('<?php echo htmlspecialchars($media['file_url']); ?>')" class="btn btn-sm btn-secondary">
-                                            <i class="fas fa-copy"></i> Copy
-                                        </button>
                                         <button onclick="editMedia(<?php echo $media['id']; ?>)" class="btn btn-sm btn-primary">
                                             <i class="fas fa-edit"></i> Edit
                                         </button>
@@ -322,9 +307,15 @@ $documentItems = array_filter($mediaItems, fn($item) => $item['file_type'] === '
             </div>
 
             <div class="form-group">
-                <label>File URL *</label>
-                <input type="url" name="file_url" id="media_file_url" class="form-control" required placeholder="https://example.com/file.jpg">
-                <small style="color: #666;">Link to the file hosted online (e.g., Google Drive, Dropbox, YouTube, etc.)</small>
+                <label>File URL</label>
+                <input type="url" name="file_url" id="media_file_url" class="form-control" placeholder="https://example.com/file.jpg">
+                <small style="color: #666;">Paste a link OR upload a file below to auto-fill the URL.</small>
+            </div>
+
+            <div class="form-group">
+                <label>Upload File</label>
+                <input type="file" id="media_file_upload" name="file" class="form-control" accept="image/*,video/*,audio/*,.pdf,.doc,.docx">
+                <small style="color: #666;">Images, video, audio, or documents up to 80MB. Uploaded files will fill in the URL automatically.</small>
             </div>
 
             <div class="form-group" id="typeGroup">
@@ -508,14 +499,6 @@ function deleteMedia(id, title) {
     form.submit();
 }
 
-function copyUrl(url) {
-    navigator.clipboard.writeText(url).then(() => {
-        alert('URL copied to clipboard!');
-    }).catch(err => {
-        prompt('Copy this URL:', url);
-    });
-}
-
 function closeModal() {
     document.getElementById('mediaModal').style.display = 'none';
 }
@@ -524,6 +507,57 @@ function closeModal() {
 document.getElementById('mediaModal').addEventListener('click', function(e) {
     if (e.target === this) {
         closeModal();
+    }
+});
+
+// Handle direct file upload to auto-fill URL and type
+const fileUploadInput = document.getElementById('media_file_upload');
+const fileUrlInput = document.getElementById('media_file_url');
+const fileTypeSelect = document.getElementById('media_file_type');
+
+function inferType(mime) {
+    if (!mime) return 'document';
+    if (mime.startsWith('image/')) return 'image';
+    if (mime.startsWith('video/')) return 'video';
+    if (mime.startsWith('audio/')) return 'audio';
+    return 'document';
+}
+
+if (fileUploadInput) {
+    fileUploadInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('csrf_token', '<?php echo generateCSRFToken(); ?>');
+
+        // Basic feedback
+        fileUrlInput.value = 'Uploading...';
+
+        fetch('api/upload.php', { method: 'POST', body: formData, credentials: 'same-origin' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.file && data.file.url) {
+                    fileUrlInput.value = data.file.url;
+                    fileTypeSelect.value = inferType(file.type);
+                } else {
+                    fileUrlInput.value = '';
+                    alert((data && data.error) ? data.error : 'Upload failed. Please try again.');
+                }
+            })
+            .catch(() => {
+                fileUrlInput.value = '';
+                alert('Upload failed. Please try again.');
+            });
+    });
+}
+
+// Require either an uploaded URL or a manual URL before submit
+document.getElementById('mediaForm').addEventListener('submit', (e) => {
+    if (!fileUrlInput.value.trim()) {
+        e.preventDefault();
+        alert('Please upload a file or paste a file URL.');
     }
 });
 </script>

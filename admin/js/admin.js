@@ -38,6 +38,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Sidebar dropdown toggles
+    document.querySelectorAll('.sidebar .dropdown .nav-dropdown-toggle').forEach(toggle => {
+        toggle.addEventListener('click', () => {
+            toggle.parentElement.classList.toggle('active');
+        });
+    });
 });
 
 // Image preview function

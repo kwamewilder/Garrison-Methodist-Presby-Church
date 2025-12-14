@@ -1,14 +1,46 @@
 <?php
 require_once "config.php";
+require_once "includes/block_renderer.php";
 require_once "includes/get_communities.php";
 require_once "includes/get_menu_pages.php";
+require_once "includes/get_settings.php";
+
+$currentPage = 'about';
+$serviceSunday = getSetting('sunday_service_time', '09:00 AM');
+$serviceTuesday = getSetting('tuesday_service_time', '9:00 AM');
+$serviceCounselling = getSetting('counselling_time', '14:00 AM');
+$churchName = getSetting('church_name', 'Garrison Methodist Presbyterian Church');
+$churchAddress = getSetting('church_address', 'Burma Camp, Accra');
+$churchPhone = getSetting('church_phone', '(+233) 243-3689');
+$churchEmail = getSetting('church_email', 'info@garrisonmpc.org');
+$facebookUrl = getSetting('facebook_url', 'https://www.facebook.com/gmpcburmacamp');
+$youtubeUrl = getSetting('youtube_url', 'https://www.youtube.com/@gmpcburmacamp3405');
+$tiktokUrl = getSetting('tiktok_url', 'https://www.tiktok.com/@gmpcburmacamp');
+
+// Try to load editable content from pages table (slug: about)
+$aboutPageContent = '';
+$aboutMetaDescription = 'Learn about the history, mission, and beliefs of Garrison Methodist Presbyterian Church. Discover our story and what makes our church family special.';
+try {
+    $conn = getDBConnection();
+    $stmt = $conn->prepare("SELECT title, meta_description, content FROM pages WHERE slug = ? AND status = 'active' LIMIT 1");
+    $stmt->execute(['about']);
+    $pageRow = $stmt->fetch();
+    if ($pageRow) {
+        $aboutPageContent = render_blocks($pageRow['content']);
+        if (!empty($pageRow['meta_description'])) {
+            $aboutMetaDescription = $pageRow['meta_description'];
+        }
+    }
+} catch (PDOException $e) {
+    error_log("About page fetch error: " . $e->getMessage());
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Learn about the history, mission, and beliefs of Garrison Methodist Presbyterian Church. Discover our story and what makes our church family special.">
+    <meta name="description" content="<?php echo htmlspecialchars($aboutMetaDescription); ?>">
     <title>About Us - Garrison Methodist Presbyterian Church</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/scrolling-banner.css">
@@ -25,54 +57,7 @@ require_once "includes/get_menu_pages.php";
     </div>
 
     <!-- Header -->
-    <header class="header">
-        <nav class="navbar">
-            <div class="nav-container">
-                <div class="nav-logo">
-                    <img src="images/logo.png" alt="GMPC Logo" class="logo-img">
-                    <span>Garrison Methodist Presbyterian Church</span>
-                </div>
-                <ul class="nav-menu">
-                    <li class="nav-item">
-                        <a href="index.php" class="nav-link">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="about.php" class="nav-link active">About</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="sermons.php" class="nav-link">Sermons</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="events.php" class="nav-link">Events</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="media.php" class="nav-link">Media</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a href="#" class="nav-link">Communities <i class="fas fa-chevron-down"></i></a>
-                        <ul class="dropdown-menu">
-                            <?php foreach ($communities as $community): ?>
-                                <li><a href="community.php?slug=<?php echo urlencode($community['slug']); ?>"><?php echo htmlspecialchars($community['name']); ?></a></li>
-                            <?php endforeach; ?>
-                        </ul>
-                    </li>
-                    <li class="nav-item">
-                        <a href="contact.php" class="nav-link">Contact</a>
-                    </li>
-                    <?php foreach ($menuPages as $menuPage): ?>
-                        <li class="nav-item">
-                            <a href="page.php?slug=<?php echo urlencode($menuPage['slug']); ?>" class="nav-link"><?php echo htmlspecialchars($menuPage['title']); ?></a>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-                <div class="hamburger">
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                </div>
-            </div>
-        </nav>
-    </header>
+    <?php include 'includes/navbar.php'; ?>
 
     <!-- Page Header -->
     <section class="page-header">
@@ -82,31 +67,41 @@ require_once "includes/get_menu_pages.php";
         </div>
     </section>
 
-    <!-- About Content -->
-    <section class="about-content">
-        <div class="container">
-            <div class="about-grid">
-                <div class="about-text">
-                    <h2>Our Story</h2>
-                    <p>Garrison Methodist Presbyterian Church has been a cornerstone of faith in our community for over a century. Founded in 1892, our church has grown from a small gathering of believers to a vibrant community that welcomes all who seek to know God's love.</p>
-                    <p>We are a unique congregation that embraces both Methodist and Presbyterian traditions, creating a rich tapestry of worship and fellowship that honors our diverse heritage while staying true to the Gospel of Jesus Christ.</p>
-                    
-                    <p>Garrison Methodist Presbyterian Church has been a cornerstone of faith in our community for over a century. Founded in 1892, our church has grown from a small gathering of believers to a vibrant community that welcomes all who seek to know God's love.</p>
-                    <p>We are a unique congregation that embraces both Methodist and Presbyterian traditions, creating a rich tapestry of worship and fellowship that honors our diverse heritage while staying true to the Gospel of Jesus Christ.</p>
-                     <p>Garrison Methodist Presbyterian Church has been a cornerstone of faith in our community for over a century. Founded in 1892, our church has grown from a small gathering of believers to a vibrant community that welcomes all who seek to know God's love.</p>
-                    <p>We are a unique congregation that embraces both Methodist and Presbyterian traditions, creating a rich tapestry of worship and fellowship that honors our diverse heritage while staying true to the Gospel of Jesus Christ.</p>
-                          
-               
-                </div>
-                
-                <div class="about-image">
-                    <img src="https://images.pexels.com/photos/208285/pexels-photo-208285.jpeg?auto=compress&cs=tinysrgb&w=800" alt="An old, black and white photo of the church from the early 20th century.">
-                <img src="https://images.pexels.com/photos/208285/pexels-photo-208285.jpeg?auto=compress&cs=tinysrgb&w=800" alt="An old, black and white photo of the church from the early 20th century.">
-            
+    <?php if ($aboutPageContent): ?>
+        <section class="custom-page-content" style="padding: 60px 0;">
+            <div class="container">
+                <div class="page-content-wrapper" style="max-width: 900px; margin: 0 auto;">
+                    <?php echo $aboutPageContent; ?>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    <?php else: ?>
+        <!-- About Content (fallback) -->
+        <section class="about-content">
+            <div class="container">
+                <div class="about-grid">
+                    <div class="about-text">
+                        <h2>Our Story</h2>
+                        <p>Garrison Methodist Presbyterian Church has been a cornerstone of faith in our community for over a century. Founded in 1892, our church has grown from a small gathering of believers to a vibrant community that welcomes all who seek to know God's love.</p>
+                        <p>We are a unique congregation that embraces both Methodist and Presbyterian traditions, creating a rich tapestry of worship and fellowship that honors our diverse heritage while staying true to the Gospel of Jesus Christ.</p>
+                        
+                        <p>Garrison Methodist Presbyterian Church has been a cornerstone of faith in our community for over a century. Founded in 1892, our church has grown from a small gathering of believers to a vibrant community that welcomes all who seek to know God's love.</p>
+                        <p>We are a unique congregation that embraces both Methodist and Presbyterian traditions, creating a rich tapestry of worship and fellowship that honors our diverse heritage while staying true to the Gospel of Jesus Christ.</p>
+                         <p>Garrison Methodist Presbyterian Church has been a cornerstone of faith in our community for over a century. Founded in 1892, our church has grown from a small gathering of believers to a vibrant community that welcomes all who seek to know God's love.</p>
+                        <p>We are a unique congregation that embraces both Methodist and Presbyterian traditions, creating a rich tapestry of worship and fellowship that honors our diverse heritage while staying true to the Gospel of Jesus Christ.</p>
+                              
+                   
+                    </div>
+                    
+                    <div class="about-image">
+                        <img src="https://images.pexels.com/photos/208285/pexels-photo-208285.jpeg?auto=compress&cs=tinysrgb&w=800" alt="An old, black and white photo of the church from the early 20th century.">
+                    <img src="https://images.pexels.com/photos/208285/pexels-photo-208285.jpeg?auto=compress&cs=tinysrgb&w=800" alt="An old, black and white photo of the church from the early 20th century.">
+                
+                    </div>
+                </div>
+            </div>
+        </section>
+    <?php endif; ?>
 
     <!-- Staff Section -->
     <section class="staff-section">
@@ -178,14 +173,13 @@ require_once "includes/get_menu_pages.php";
                 <div class="footer-section">
                     <div class="footer-logo">
                         <img src="images/logo.png" alt="GMPC Logo" class="footer-logo-img">
-                        <span>Garrison Methodist Presbyterian Church</span>
+                        <span><?php echo htmlspecialchars($churchName); ?></span>
                     </div>
                     <p>A community of faith, hope, and love serving God together</p>
                     <div class="social-links">
-                        <a href="https://www.facebook.com/gmpcburmacamp" target="_blank"><i class="fab fa-facebook"></i></a>
-                     <!--   <a href="https://www.instagram.com/garrisonmethodistpresbyterianchurch" target="_blank"><i class="fab fa-instagram"></i></a> -->
-                        <a href="https://www.youtube.com/@gmpcburmacamp3405" target="_blank"><i class="fab fa-youtube"></i></a>
-                        <a href="https://www.tiktok.com/@gmpcburmacamp" target="_blank"><i class="fab fa-tiktok"></i></a>
+                        <?php if (!empty($facebookUrl)): ?><a href="<?php echo htmlspecialchars($facebookUrl); ?>" target="_blank"><i class="fab fa-facebook"></i></a><?php endif; ?>
+                        <?php if (!empty($youtubeUrl)): ?><a href="<?php echo htmlspecialchars($youtubeUrl); ?>" target="_blank"><i class="fab fa-youtube"></i></a><?php endif; ?>
+                        <?php if (!empty($tiktokUrl)): ?><a href="<?php echo htmlspecialchars($tiktokUrl); ?>" target="_blank"><i class="fab fa-tiktok"></i></a><?php endif; ?>
                     </div>
                 </div>
                 <div class="footer-section">
@@ -200,18 +194,18 @@ require_once "includes/get_menu_pages.php";
                 <div class="footer-section">
                     <h4>Service Times</h4>
                     <ul>
-                        <li>Sunday School: 09:00 AM</li>
-                        <li>Morning Worship: 9:00 AM</li>
-                        <li>Counselling Session: 14:00 AM</li>
+                        <li>Sunday School: <?php echo htmlspecialchars($serviceSunday); ?></li>
+                        <li>Tuesday Service: <?php echo htmlspecialchars($serviceTuesday); ?></li>
+                        <li>Counselling Session: <?php echo htmlspecialchars($serviceCounselling); ?></li>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>Contact Info</h4>
                     <ul>
-                        <li>Garrison Methodist Presby Church</li>
-                        <li>Burma Camp, Accra</li>
-                        <li>(+233) 243-3689</li>
-                        <li>info@garrisonmpc.org</li>
+                        <li><?php echo htmlspecialchars($churchName); ?></li>
+                        <li><?php echo htmlspecialchars($churchAddress); ?></li>
+                        <li><?php echo htmlspecialchars($churchPhone); ?></li>
+                        <li><?php echo htmlspecialchars($churchEmail); ?></li>
                     </ul>
                 </div>
             </div>

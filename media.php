@@ -2,6 +2,19 @@
 require_once 'config.php';
 require_once "includes/get_communities.php";
 require_once "includes/get_menu_pages.php";
+require_once "includes/get_settings.php";
+
+$currentPage = 'media';
+$serviceSunday = getSetting('sunday_service_time', '09:00 AM');
+$serviceTuesday = getSetting('tuesday_service_time', '9:00 AM');
+$serviceCounselling = getSetting('counselling_time', '14:00 AM');
+$churchName = getSetting('church_name', 'Garrison Methodist Presbyterian Church');
+$churchAddress = getSetting('church_address', 'Burma Camp, Accra');
+$churchPhone = getSetting('church_phone', '(+233) 243-3689');
+$churchEmail = getSetting('church_email', 'info@garrisonmpc.org');
+$facebookUrl = getSetting('facebook_url', 'https://www.facebook.com/gmpcburmacamp');
+$youtubeUrl = getSetting('youtube_url', 'https://www.youtube.com/@gmpcburmacamp3405');
+$tiktokUrl = getSetting('tiktok_url', 'https://www.tiktok.com/@gmpcburmacamp');
 
 // Sanitize input helper
 function sanitizeInput($data) {
@@ -10,7 +23,6 @@ function sanitizeInput($data) {
 
 // Get media items from database
 $mediaItems = [];
-$menuPages = [];
 
 try {
     $conn = getDBConnection();
@@ -27,15 +39,6 @@ try {
         $mediaStmt->execute([$type . '%']);
     }
     $mediaItems = $mediaStmt->fetchAll();
-
-    // Get menu pages for navigation
-    try {
-        $stmt = $conn->query("SELECT title, page_slug FROM pages WHERE status = 'published' ORDER BY id ASC LIMIT 5");
-        $menuPages = $stmt->fetchAll();
-    } catch(PDOException $e) {
-        error_log("Error fetching menu pages: " . $e->getMessage());
-        $menuPages = [];
-    }
 
 } catch(PDOException $e) {
     error_log("Error fetching media: " . $e->getMessage());
@@ -115,24 +118,28 @@ function getYouTubeEmbedUrl($url) {
         .media-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
+            gap: 26px;
+            margin-top: 30px;
         }
         .media-item {
-            background: white;
-            border-radius: 10px;
+            background: #ffffff;
+            border-radius: 14px;
             overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 14px 32px rgba(15, 23, 42, 0.12);
+            transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+            border: 1px solid #e5e7eb;
         }
         .media-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            transform: translateY(-6px);
+            box-shadow: 0 18px 42px rgba(15, 23, 42, 0.16);
+            border-color: rgba(93,173,236,0.35);
         }
         .media-thumbnail {
             width: 100%;
             height: 200px;
-            background: #f5f5f5;
+            background: radial-gradient(circle at 20% 20%, rgba(93,173,236,0.16), transparent 40%),
+                        radial-gradient(circle at 80% 30%, rgba(10,10,51,0.16), transparent 42%),
+                        #0b1024;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -143,13 +150,17 @@ function getYouTubeEmbedUrl($url) {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: transform 0.35s ease;
         }
         .media-thumbnail .icon-placeholder {
-            font-size: 4rem;
+            font-size: 3.5rem;
             color: #5DADEC;
         }
+        .media-item:hover .media-thumbnail img {
+            transform: scale(1.03);
+        }
         .media-info {
-            padding: 20px;
+            padding: 18px 18px 16px 18px;
         }
         .media-info h3 {
             margin: 0 0 10px 0;
@@ -172,10 +183,11 @@ function getYouTubeEmbedUrl($url) {
             align-items: center;
             gap: 5px;
             padding: 5px 10px;
-            background: #f0f0f0;
-            border-radius: 5px;
+            background: #f7fafc;
+            border-radius: 8px;
             font-size: 0.85rem;
-            color: #666;
+            color: #0f172a;
+            border: 1px solid #e5e7eb;
         }
         .media-date {
             font-size: 0.85rem;
@@ -187,26 +199,23 @@ function getYouTubeEmbedUrl($url) {
         }
         .media-btn {
             flex: 1;
-            padding: 10px;
-            background: #5DADEC;
+            padding: 11px 12px;
+            background: linear-gradient(135deg, #5DADEC, #73b7ea);
             color: white;
             text-decoration: none;
             text-align: center;
-            border-radius: 5px;
-            transition: all 0.3s ease;
-            display: flex;
+            border-radius: 10px;
+            transition: all 0.25s ease;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 5px;
+            gap: 6px;
+            box-shadow: 0 12px 26px rgba(93, 173, 236, 0.25);
+            border: 1px solid rgba(255,255,255,0.12);
         }
         .media-btn:hover {
-            background: #4a9dd8;
-        }
-        .media-btn.secondary {
-            background: #6c757d;
-        }
-        .media-btn.secondary:hover {
-            background: #5a6268;
+            transform: translateY(-2px);
+            box-shadow: 0 16px 32px rgba(93, 173, 236, 0.32);
         }
         .no-media {
             text-align: center;
@@ -225,23 +234,26 @@ function getYouTubeEmbedUrl($url) {
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.82);
             z-index: 10000;
             justify-content: center;
             align-items: center;
             padding: 20px;
+            backdrop-filter: blur(4px);
         }
         .media-modal.active {
             display: flex;
         }
         .media-modal-content {
-            background: white;
+            background: #0b1024;
             padding: 30px;
-            border-radius: 15px;
-            max-width: 90%;
-            max-height: 90%;
-            overflow: auto;
+            border-radius: 18px;
+            max-width: 96%;
+            max-height: 92%;
+            overflow: hidden;
             position: relative;
+            box-shadow: 0 24px 50px rgba(0,0,0,0.35);
+            border: 1px solid rgba(255,255,255,0.1);
         }
         .media-modal-content h3 {
             margin: 0 0 20px 0;
@@ -270,9 +282,36 @@ function getYouTubeEmbedUrl($url) {
         #videoContainer iframe,
         #videoContainer video {
             width: 100%;
-            max-width: 800px;
-            height: 450px;
+            height: 100%;
             border-radius: 10px;
+            border: none;
+            object-fit: contain;
+        }
+
+        /* Fullscreen-style video modal */
+        #videoModal .media-modal-content {
+            max-width: 100%;
+            max-height: 100%;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            padding: 16px;
+            border-radius: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #videoModal .media-modal-content h3 {
+            color: #fff;
+            margin-bottom: 12px;
+        }
+        #videoContainer {
+            width: 100%;
+            height: calc(100vh - 160px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
     </style>
 </head>
@@ -285,58 +324,7 @@ function getYouTubeEmbedUrl($url) {
     </div>
 
     <!-- Header -->
-    <header class="header">
-        <nav class="navbar">
-            <div class="nav-container">
-                <div class="nav-logo">
-                    <img src="images/logo.png" alt="GMPC Logo" class="logo-img">
-                    <span>Garrison Methodist Presbyterian Church</span>
-                </div>
-                <ul class="nav-menu">
-                    <li class="nav-item">
-                        <a href="index.php" class="nav-link">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="about.php" class="nav-link">About</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="sermons.php" class="nav-link">Sermons</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="events.php" class="nav-link">Events</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="media.php" class="nav-link active">Media</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a href="#" class="nav-link">Communities <i class="fas fa-chevron-down"></i></a>
-                        <ul class="dropdown-menu">
-                            <?php foreach ($communities as $community): ?>
-                                <li><a href="community.php?slug=<?php echo urlencode($community['slug']); ?>"><?php echo htmlspecialchars($community['name']); ?></a></li>
-                            <?php endforeach; ?>
-                        </ul>
-                    </li>
-                    <li class="nav-item">
-                        <a href="contact.php" class="nav-link">Contact</a>
-                    </li>
-                    <?php if (count($menuPages) > 0): ?>
-                        <?php foreach ($menuPages as $menuPage): ?>
-                            <li class="nav-item">
-                                <a href="page.php?slug=<?php echo urlencode($menuPage['page_slug']); ?>" class="nav-link">
-                                    <?php echo htmlspecialchars($menuPage['title']); ?>
-                                </a>
-                            </li>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </ul>
-                <div class="hamburger">
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                </div>
-            </div>
-        </nav>
-    </header>
+    <?php include 'includes/navbar.php'; ?>
 
     <!-- Page Header -->
     <section class="page-header">
@@ -383,14 +371,16 @@ function getYouTubeEmbedUrl($url) {
                                  onclick="openImageModal('<?php echo htmlspecialchars($fileUrl, ENT_QUOTES); ?>', '<?php echo htmlspecialchars($displayName, ENT_QUOTES); ?>')"
                                  style="cursor: pointer;">
                         <?php elseif ($media['file_type'] === 'video'): ?>
-                            <div style="background: #000; color: white; height: 200px; display: flex; align-items: center; justify-content: center; cursor: pointer;"
+                            <div style="background: #050915; color: white; height: 200px; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden;"
                                  onclick="openVideoModal('<?php echo htmlspecialchars($fileUrl, ENT_QUOTES); ?>', '<?php echo htmlspecialchars($displayName, ENT_QUOTES); ?>')">
-                                <i class="fas fa-play-circle" style="font-size: 4rem;"></i>
+                                <div style="position:absolute; inset:0; background: radial-gradient(circle at 30% 30%, rgba(93,173,236,0.18), transparent 42%), radial-gradient(circle at 70% 40%, rgba(10,10,51,0.18), transparent 45%);"></div>
+                                <i class="fas fa-play-circle" style="font-size: 3.5rem; position: relative; z-index: 1;"></i>
                             </div>
                         <?php elseif ($media['file_type'] === 'audio'): ?>
-                            <div style="background: #5DADEC; color: white; height: 200px; display: flex; align-items: center; justify-content: center; cursor: pointer;"
+                            <div style="background: linear-gradient(135deg, #0A0A33, #1c2b4b); color: white; height: 200px; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden;"
                                  onclick="openAudioModal('<?php echo htmlspecialchars($fileUrl, ENT_QUOTES); ?>', '<?php echo htmlspecialchars($displayName, ENT_QUOTES); ?>')">
-                                <i class="fas fa-music" style="font-size: 4rem;"></i>
+                                <div style="position:absolute; inset:0; background: radial-gradient(circle at 25% 25%, rgba(93,173,236,0.2), transparent 40%), radial-gradient(circle at 75% 60%, rgba(10,10,51,0.2), transparent 40%);"></div>
+                                <i class="fas fa-headphones" style="font-size: 3.2rem; position: relative; z-index: 1;"></i>
                             </div>
                         <?php else: ?>
                             <i class="fas <?php echo getFileIcon($media['file_type']); ?> icon-placeholder"></i>
@@ -433,11 +423,6 @@ function getYouTubeEmbedUrl($url) {
                                     <i class="fas fa-external-link-alt"></i> View
                                 </a>
                             <?php endif; ?>
-                            <button onclick="copyUrl('<?php echo htmlspecialchars($fileUrl, ENT_QUOTES); ?>')"
-                                    class="media-btn secondary"
-                                    style="border: none; cursor: pointer;">
-                                <i class="fas fa-copy"></i> Copy URL
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -458,7 +443,7 @@ function getYouTubeEmbedUrl($url) {
         <span class="media-modal-close">&times;</span>
         <div class="media-modal-content" onclick="event.stopPropagation()">
             <h3 id="imageModalTitle"></h3>
-            <img src="" alt="Image" id="imageModalImg" style="max-width: 100%; max-height: 80vh; border-radius: 10px;">
+            <img src="" alt="Image" id="imageModalImg" style="max-width: 100%; max-height: 80vh; border-radius: 14px;">
         </div>
     </div>
 
@@ -489,13 +474,13 @@ function getYouTubeEmbedUrl($url) {
                 <div class="footer-section">
                     <div class="footer-logo">
                         <img src="images/logo.png" alt="GMPC Logo" class="footer-logo-img">
-                        <span>Garrison Methodist Presbyterian Church</span>
+                        <span><?php echo htmlspecialchars($churchName); ?></span>
                     </div>
                     <p>A community of faith, hope, and love serving God together</p>
                     <div class="social-links">
-                        <a href="https://www.facebook.com/gmpcburmacamp" target="_blank"><i class="fab fa-facebook"></i></a>
-                        <a href="https://www.youtube.com/@gmpcburmacamp3405" target="_blank"><i class="fab fa-youtube"></i></a>
-                        <a href="https://www.tiktok.com/@gmpcburmacamp" target="_blank"><i class="fab fa-tiktok"></i></a>
+                        <?php if (!empty($facebookUrl)): ?><a href="<?php echo htmlspecialchars($facebookUrl); ?>" target="_blank"><i class="fab fa-facebook"></i></a><?php endif; ?>
+                        <?php if (!empty($youtubeUrl)): ?><a href="<?php echo htmlspecialchars($youtubeUrl); ?>" target="_blank"><i class="fab fa-youtube"></i></a><?php endif; ?>
+                        <?php if (!empty($tiktokUrl)): ?><a href="<?php echo htmlspecialchars($tiktokUrl); ?>" target="_blank"><i class="fab fa-tiktok"></i></a><?php endif; ?>
                     </div>
                 </div>
                 <div class="footer-section">
@@ -510,18 +495,18 @@ function getYouTubeEmbedUrl($url) {
                 <div class="footer-section">
                     <h4>Service Times</h4>
                     <ul>
-                        <li>Sunday School: 09:00 AM</li>
-                        <li>Morning Worship: 9:00 AM</li>
-                        <li>Counselling Session: 14:00 AM</li>
+                        <li>Sunday School: <?php echo htmlspecialchars($serviceSunday); ?></li>
+                        <li>Tuesday Service: <?php echo htmlspecialchars($serviceTuesday); ?></li>
+                        <li>Counselling Session: <?php echo htmlspecialchars($serviceCounselling); ?></li>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>Contact Info</h4>
                     <ul>
-                        <li>Garrison Methodist Presby Church</li>
-                        <li>Burma Camp, Accra</li>
-                        <li>(+233) 243-3689</li>
-                        <li>info@garrisonmpc.org</li>
+                        <li><?php echo htmlspecialchars($churchName); ?></li>
+                        <li><?php echo htmlspecialchars($churchAddress); ?></li>
+                        <li><?php echo htmlspecialchars($churchPhone); ?></li>
+                        <li><?php echo htmlspecialchars($churchEmail); ?></li>
                     </ul>
                 </div>
             </div>
@@ -534,14 +519,6 @@ function getYouTubeEmbedUrl($url) {
     <script src="js/scrolling-banner.js"></script>
     <script src="js/script.js"></script>
     <script>
-        function copyUrl(url) {
-            navigator.clipboard.writeText(url).then(() => {
-                alert('URL copied to clipboard!');
-            }).catch(err => {
-                prompt('Copy this URL:', url);
-            });
-        }
-
         // Image Modal Functions
         function openImageModal(imageUrl, title) {
             const modal = document.getElementById('imageModal');

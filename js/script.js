@@ -1,22 +1,49 @@
-// Mobile Navigation Toggle
-const hamburger = document.querySelector('.hamburger');
-const navMenu = document.querySelector('.nav-menu');
+// Navigation
+const navToggle = document.querySelector('[data-nav-toggle]');
+const navDrawer = document.querySelector('[data-nav-drawer]');
+const navOverlay = document.querySelector('[data-nav-overlay]');
+const navCloseButtons = document.querySelectorAll('[data-nav-close]');
 
-hamburger.addEventListener('click', () => {
-    hamburger.classList.toggle('active');
-    navMenu.classList.toggle('active');
+function setNavOpen(open) {
+    if (!navDrawer) return;
+    navDrawer.classList.toggle('is-open', open);
+    navOverlay?.classList.toggle('is-open', open);
+    navToggle?.setAttribute('aria-expanded', open ? 'true' : 'false');
+    navDrawer.setAttribute('aria-hidden', open ? 'false' : 'true');
+}
+
+if (navToggle && navDrawer) {
+    navToggle.addEventListener('click', () => {
+        const isOpen = navDrawer.classList.contains('is-open');
+        setNavOpen(!isOpen);
+    });
+}
+
+navOverlay?.addEventListener('click', () => setNavOpen(false));
+navCloseButtons.forEach(btn => btn.addEventListener('click', () => setNavOpen(false)));
+
+document.querySelectorAll('.drawer-link, .drawer-submenu a').forEach(link => {
+    link.addEventListener('click', () => setNavOpen(false));
 });
 
-// Dropdown menu functionality for mobile
-document.querySelectorAll('.nav-item.dropdown > .nav-link').forEach(link => {
-    link.addEventListener('click', (e) => {
-        // Only prevent default and toggle on mobile
-        if (window.innerWidth <= 768) {
-            e.preventDefault();
-            const dropdown = link.parentElement;
-            dropdown.classList.toggle('active');
-        }
+// Mobile dropdown toggles inside drawer
+document.querySelectorAll('[data-nav-accordion]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const item = btn.closest('.drawer-item');
+        if (!item) return;
+        const isOpen = item.classList.contains('is-open');
+        document.querySelectorAll('.drawer-item.is-open').forEach(d => d.classList.remove('is-open'));
+        if (!isOpen) item.classList.add('is-open');
     });
+});
+
+// Reset state on resize
+window.addEventListener('resize', () => {
+    if (window.innerWidth > 1100) {
+        setNavOpen(false);
+        document.querySelectorAll('.drawer-item.is-open').forEach(d => d.classList.remove('is-open'));
+    }
 });
 
 // Close mobile menu when clicking on a dropdown link (not the parent)
@@ -141,13 +168,15 @@ function validateForm(form) {
 // Combined scroll event listener
 window.addEventListener('scroll', () => {
     // Header background change on scroll
-    const header = document.querySelector('.header');
-    if (window.scrollY > 100) {
-        header.style.background = 'rgba(255, 255, 255, 0.98)';
-        header.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.15)';
-    } else {
-        header.style.background = 'rgba(255, 255, 255, 0.95)';
-        header.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
+    const header = document.querySelector('.site-header');
+    if (header) {
+        if (window.scrollY > 100) {
+            header.style.background = 'rgba(255, 255, 255, 0.98)';
+            header.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.15)';
+        } else {
+            header.style.background = 'rgba(255, 255, 255, 0.95)';
+            header.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
+        }
     }
 
     // Parallax effect for hero section

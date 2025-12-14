@@ -3,8 +3,19 @@ require_once "config.php";
 require_once "includes/block_renderer.php";
 require_once "includes/get_communities.php";
 require_once "includes/get_menu_pages.php";
+require_once "includes/get_settings.php";
 
 $currentPage = 'church-history';
+$serviceSunday = getSetting('sunday_service_time', '09:00 AM');
+$serviceTuesday = getSetting('tuesday_service_time', '9:00 AM');
+$serviceCounselling = getSetting('counselling_time', '14:00 AM');
+$churchName = getSetting('church_name', 'Garrison Methodist Presbyterian Church');
+$churchAddress = getSetting('church_address', 'Burma Camp, Accra');
+$churchPhone = getSetting('church_phone', '(+233) 243-3689');
+$churchEmail = getSetting('church_email', 'info@garrisonmpc.org');
+$facebookUrl = getSetting('facebook_url', 'https://www.facebook.com/gmpcburmacamp');
+$youtubeUrl = getSetting('youtube_url', 'https://www.youtube.com/@gmpcburmacamp3405');
+$tiktokUrl = getSetting('tiktok_url', 'https://www.tiktok.com/@gmpcburmacamp');
 
 // Pull editable content from pages table (slug: church-history)
 $historyContent = '';
@@ -54,6 +65,7 @@ try {
             --radius-sm: 8px;
             background-color: var(--bg);
             padding: 60px 0 70px;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
         .history-theme .container {
             width: 100%;
@@ -96,6 +108,15 @@ try {
             color: var(--text);
             line-height: 1.7;
             margin: 0 0 1.1rem;
+        }
+        .history-shell a {
+            color: var(--primary);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s ease;
+        }
+        .history-shell a:hover {
+            border-color: var(--accent);
         }
         .history-shell ul {
             padding-left: 1.2rem;
@@ -359,10 +380,12 @@ try {
         if (firstHeading && imgNode) {
             const intro = document.createElement('div');
             intro.className = 'history-intro two-column';
+            intro.setAttribute('data-timeline-skip', 'true');
             const textCol = document.createElement('div');
             textCol.className = 'intro-text';
             const imageCol = document.createElement('div');
             imageCol.className = 'image-card intro-image-card';
+            imageCol.setAttribute('data-timeline-skip', 'true');
 
             // Collect nodes from the first heading up to (but not including) the image node
             const toMove = [];
@@ -391,9 +414,11 @@ try {
         if (duoTargets.length === 2) {
             const duo = document.createElement('div');
             duo.className = 'history-duo';
+            duo.setAttribute('data-timeline-skip', 'true');
             duoTargets.forEach(el => {
                 const card = document.createElement('div');
                 card.className = 'duo-card';
+                card.setAttribute('data-timeline-skip', 'true');
                 card.appendChild(el);
                 duo.appendChild(card);
             });
@@ -418,12 +443,17 @@ try {
 
         while (i < children.length) {
             const node = children[i];
+            if (node && node.getAttribute && node.getAttribute('data-timeline-skip') === 'true') {
+                i++;
+                continue;
+            }
             if (isYearHeading(node)) {
                 const group = [node];
                 i++;
                 while (i < children.length) {
                     const next = children[i];
                     if (isYearHeading(next)) break;
+                    if (next && next.getAttribute && next.getAttribute('data-timeline-skip') === 'true') break;
                     if (isHeadingEl(next) && !isYearHeading(next)) break;
                     group.push(next);
                     i++;
@@ -475,13 +505,13 @@ try {
                 <div class="footer-section">
                     <div class="footer-logo">
                         <img src="images/logo.png" alt="GMPC Logo" class="footer-logo-img">
-                        <span>Garrison Methodist Presbyterian Church</span>
+                        <span><?php echo htmlspecialchars($churchName); ?></span>
                     </div>
                     <p>A community of faith, hope, and love serving God together</p>
                     <div class="social-links">
-                        <a href="https://www.facebook.com/gmpcburmacamp" target="_blank"><i class="fab fa-facebook"></i></a>
-                        <a href="https://www.youtube.com/@gmpcburmacamp3405" target="_blank"><i class="fab fa-youtube"></i></a>
-                        <a href="https://www.tiktok.com/@gmpcburmacamp" target="_blank"><i class="fab fa-tiktok"></i></a>
+                        <?php if (!empty($facebookUrl)): ?><a href="<?php echo htmlspecialchars($facebookUrl); ?>" target="_blank"><i class="fab fa-facebook"></i></a><?php endif; ?>
+                        <?php if (!empty($youtubeUrl)): ?><a href="<?php echo htmlspecialchars($youtubeUrl); ?>" target="_blank"><i class="fab fa-youtube"></i></a><?php endif; ?>
+                        <?php if (!empty($tiktokUrl)): ?><a href="<?php echo htmlspecialchars($tiktokUrl); ?>" target="_blank"><i class="fab fa-tiktok"></i></a><?php endif; ?>
                     </div>
                 </div>
                 <div class="footer-section">
@@ -496,18 +526,18 @@ try {
                 <div class="footer-section">
                     <h4>Service Times</h4>
                     <ul>
-                        <li>Sunday School: 09:00 AM</li>
-                        <li>Morning Worship: 9:00 AM</li>
-                        <li>Counselling Session: 14:00 AM</li>
+                        <li>Sunday School: <?php echo htmlspecialchars($serviceSunday); ?></li>
+                        <li>Tuesday Service: <?php echo htmlspecialchars($serviceTuesday); ?></li>
+                        <li>Counselling Session: <?php echo htmlspecialchars($serviceCounselling); ?></li>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>Contact Info</h4>
                     <ul>
-                        <li>Garrison Methodist Presby Church</li>
-                        <li>Burma Camp, Accra</li>
-                        <li>(+233) 243-3689</li>
-                        <li>info@garrisonmpc.org</li>
+                        <li><?php echo htmlspecialchars($churchName); ?></li>
+                        <li><?php echo htmlspecialchars($churchAddress); ?></li>
+                        <li><?php echo htmlspecialchars($churchPhone); ?></li>
+                        <li><?php echo htmlspecialchars($churchEmail); ?></li>
                     </ul>
                 </div>
             </div>

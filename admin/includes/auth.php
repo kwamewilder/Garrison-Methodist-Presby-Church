@@ -17,14 +17,14 @@ function isLoggedIn() {
  */
 function requireLogin() {
     if (!isLoggedIn()) {
-        header('Location: login.php');
+        header('Location: ' . ADMIN_URL . '/login.php');
         exit;
     }
 
     // Check session timeout
     if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > SESSION_TIMEOUT)) {
         logout();
-        header('Location: login.php?timeout=1');
+        header('Location: ' . ADMIN_URL . '/login.php?timeout=1');
         exit;
     }
 
@@ -38,7 +38,7 @@ function login($username, $password) {
     $conn = getDBConnection();
 
     try {
-        $stmt = $conn->prepare("SELECT id, username, email, password, full_name, role, status FROM admins WHERE username = ? OR email = ?");
+        $stmt = $conn->prepare("SELECT id, username, email, password, full_name, role, status, avatar_url, phone, appointment FROM admins WHERE username = ? OR email = ?");
         $stmt->execute([$username, $username]);
         $user = $stmt->fetch();
 
@@ -53,6 +53,9 @@ function login($username, $password) {
             $_SESSION['admin_email'] = $user['email'];
             $_SESSION['admin_name'] = $user['full_name'];
             $_SESSION['admin_role'] = $user['role'];
+            $_SESSION['admin_avatar'] = $user['avatar_url'];
+            $_SESSION['admin_phone'] = $user['phone'];
+            $_SESSION['admin_appointment'] = $user['appointment'];
             $_SESSION['last_activity'] = time();
 
             // Update last login
@@ -132,7 +135,10 @@ function getCurrentAdmin() {
         'username' => $_SESSION['admin_username'],
         'email' => $_SESSION['admin_email'],
         'name' => $_SESSION['admin_name'],
-        'role' => $_SESSION['admin_role']
+        'role' => $_SESSION['admin_role'],
+        'avatar_url' => $_SESSION['admin_avatar'] ?? null,
+        'phone' => $_SESSION['admin_phone'] ?? null,
+        'appointment' => $_SESSION['admin_appointment'] ?? null,
     ];
 }
 

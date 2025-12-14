@@ -6,7 +6,7 @@ try {
         require_once __DIR__ . '/../config.php';
         $conn = getDBConnection();
     }
-    $stmt = $conn->query("SELECT name, slug FROM communities WHERE status = 'active' ORDER BY display_order ASC");
+    $stmt = $conn->query("SELECT name, slug FROM communities WHERE status = 'active' ORDER BY display_order ASC, name ASC");
     $communities = $stmt->fetchAll();
 } catch(PDOException $e) {
     error_log("Error fetching communities: " . $e->getMessage());

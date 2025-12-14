@@ -46,6 +46,11 @@ try {
 
     // Get menu pages for navigation
     require_once 'includes/get_menu_pages.php';
+    require_once 'includes/block_renderer.php';
+
+    $currentPage = 'page';
+    $activeMenuSlug = $page['slug'];
+    $renderedBlocks = render_blocks($page['content']);
 
 } catch(PDOException $e) {
     error_log($e->getMessage());
@@ -74,56 +79,7 @@ try {
     </div>
 
     <!-- Header -->
-    <header class="header">
-        <nav class="navbar">
-            <div class="nav-container">
-                <div class="nav-logo">
-                    <img src="images/logo.png" alt="GMPC Logo" class="logo-img">
-                    <span>Garrison Methodist Presbyterian Church</span>
-                </div>
-                <ul class="nav-menu">
-                    <li class="nav-item">
-                        <a href="index.php" class="nav-link">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="about.php" class="nav-link">About</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="sermons.php" class="nav-link">Sermons</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="events.php" class="nav-link">Events</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="media.php" class="nav-link">Media</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a href="#" class="nav-link">Communities <i class="fas fa-chevron-down"></i></a>
-                        <ul class="dropdown-menu">
-                            <?php foreach ($communities as $community): ?>
-                                <li><a href="community.php?slug=<?php echo urlencode($community['slug']); ?>"><?php echo htmlspecialchars($community['name']); ?></a></li>
-                            <?php endforeach; ?>
-                        </ul>
-                    </li>
-                    <li class="nav-item">
-                        <a href="contact.php" class="nav-link">Contact</a>
-                    </li>
-                    <?php foreach ($menuPages as $menuPage): ?>
-                        <li class="nav-item">
-                            <a href="page.php?slug=<?php echo urlencode($menuPage['slug']); ?>" class="nav-link <?php echo ($menuPage['slug'] === $page['slug']) ? 'active' : ''; ?>">
-                                <?php echo htmlspecialchars($menuPage['title']); ?>
-                            </a>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-                <div class="hamburger">
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                </div>
-            </div>
-        </nav>
-    </header>
+    <?php include 'includes/navbar.php'; ?>
 
     <!-- Page Header -->
     <section class="page-header">
@@ -136,7 +92,7 @@ try {
     <section class="custom-page-content" style="padding: 60px 0;">
         <div class="container">
             <div class="page-content-wrapper" style="max-width: 900px; margin: 0 auto;">
-                <?php echo $page['content']; ?>
+                <?php echo $renderedBlocks; ?>
             </div>
         </div>
     </section>

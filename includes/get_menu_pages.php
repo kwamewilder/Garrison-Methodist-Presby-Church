@@ -6,7 +6,8 @@ try {
         require_once __DIR__ . '/../config.php';
         $conn = getDBConnection();
     }
-    $stmt = $conn->query("SELECT title, slug, menu_order FROM pages WHERE show_in_menu = 1 AND status = 'active' ORDER BY menu_order ASC");
+    // Exclude slugs already represented by hardcoded menu items to avoid duplicates
+    $stmt = $conn->query("SELECT title, slug, menu_order FROM pages WHERE show_in_menu = 1 AND status = 'active' AND slug NOT IN ('about','contact') ORDER BY menu_order ASC");
     $menuPages = $stmt->fetchAll();
 } catch(PDOException $e) {
     error_log("Error fetching menu pages: " . $e->getMessage());

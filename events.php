@@ -2,6 +2,21 @@
 require_once 'config.php';
 require_once "includes/get_communities.php";
 require_once "includes/get_menu_pages.php";
+require_once "includes/block_renderer.php";
+require_once "includes/block_renderer.php";
+require_once "includes/get_settings.php";
+
+$currentPage = 'events';
+$serviceSunday = getSetting('sunday_service_time', '09:00 AM');
+$serviceTuesday = getSetting('tuesday_service_time', '9:00 AM');
+$serviceCounselling = getSetting('counselling_time', '14:00 AM');
+$churchName = getSetting('church_name', 'Garrison Methodist Presbyterian Church');
+$churchAddress = getSetting('church_address', 'Burma Camp, Accra');
+$churchPhone = getSetting('church_phone', '(+233) 243-3689');
+$churchEmail = getSetting('church_email', 'info@garrisonmpc.org');
+$facebookUrl = getSetting('facebook_url', 'https://www.facebook.com/gmpcburmacamp');
+$youtubeUrl = getSetting('youtube_url', 'https://www.youtube.com/@gmpcburmacamp3405');
+$tiktokUrl = getSetting('tiktok_url', 'https://www.tiktok.com/@gmpcburmacamp');
 
 function sanitizeInput($data) {
     return htmlspecialchars(strip_tags(trim($data)), ENT_QUOTES, 'UTF-8');
@@ -10,7 +25,6 @@ function sanitizeInput($data) {
 // Get events from database
 $upcomingEvents = [];
 $pastEvents = [];
-$menuPages = [];
 
 try {
     $conn = getDBConnection();
@@ -28,14 +42,6 @@ try {
         } else {
             $pastEvents[] = $event;
         }
-    }
-    
-    // Get menu pages
-    try {
-        $stmt = $conn->query("SELECT title, page_slug FROM pages WHERE status = 'published' ORDER BY id ASC LIMIT 5");
-        $menuPages = $stmt->fetchAll();
-    } catch(PDOException $e) {
-        $menuPages = [];
     }
     
 } catch(PDOException $e) {
@@ -61,42 +67,176 @@ function formatEventTime($time) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="icon" type="image/x-icon" href="./images/favicon.ico">
+    <style>
+        .event-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+        }
+        .event-card {
+            background: #ffffff;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 14px 30px rgba(15, 23, 42, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            cursor: pointer;
+        }
+        .event-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 18px 38px rgba(15, 23, 42, 0.14);
+            border-color: rgba(93,173,236,0.35);
+        }
+        .event-thumb {
+            position: relative;
+            height: 190px;
+            overflow: hidden;
+        }
+        .event-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .event-thumb .event-date-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(10,10,51,0.85);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 9px;
+            font-weight: 700;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.2);
+        }
+        .event-thumb .event-date-badge .day {
+            font-size: 0.95rem;
+            line-height: 1.1;
+            display: block;
+        }
+        .event-thumb .event-date-badge .month {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .event-body {
+            padding: 16px 18px 18px 18px;
+        }
+        .event-body h3 {
+            margin: 0 0 8px 0;
+            color: #0f172a;
+            font-size: 1.1rem;
+            line-height: 1.35;
+        }
+        .event-meta-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #4b5563;
+            font-weight: 600;
+            margin: 6px 0;
+        }
+        .event-meta-line i {
+            color: #5DADEC;
+        }
+        .event-card .event-cta {
+            margin-top: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #0A0A33;
+            font-weight: 600;
+        }
+        .event-card .event-cta i {
+            color: #5DADEC;
+        }
+        /* Modal */
+        .event-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            z-index: 10000;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 16px;
+            overflow-y: auto;
+            backdrop-filter: blur(3px);
+        }
+        .event-modal.active {
+            display: flex;
+        }
+        .event-modal-content {
+            background: #fff;
+            border-radius: 16px;
+            max-width: 900px;
+            width: 100%;
+            overflow: hidden;
+            box-shadow: 0 22px 50px rgba(15,23,42,0.28);
+            border: 1px solid #e5e7eb;
+            animation: fadeUp 0.4s ease;
+        }
+        .event-modal-header {
+            position: relative;
+        }
+        .event-modal-header img {
+            width: 100%;
+            height: 320px;
+            object-fit: cover;
+            display: block;
+        }
+        .event-modal-body {
+            padding: 22px;
+        }
+        .event-modal-close {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(0,0,0,0.4);
+            color: #fff;
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+        .event-modal-body h3 {
+            margin: 0 0 8px 0;
+            color: #0f172a;
+        }
+        .event-modal-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin: 12px 0 16px 0;
+        }
+        .event-modal-meta div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #4b5563;
+            font-weight: 600;
+        }
+        .event-modal-meta i {
+            color: #5DADEC;
+        }
+        .event-modal-content .event-description {
+            color: #4b5563;
+            line-height: 1.7;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
 <body>
     <div id="scrolling-banner" class="scrolling-banner-container loading" data-page="events">
         <div class="scrolling-banner"><span class="banner-item">Loading announcements...</span></div>
     </div>
 
-    <header class="header">
-        <nav class="navbar">
-            <div class="nav-container">
-                <div class="nav-logo">
-                    <img src="images/logo.png" alt="GMPC Logo" class="logo-img">
-                    <span>Garrison Methodist Presbyterian Church</span>
-                </div>
-                <ul class="nav-menu">
-                    <li class="nav-item"><a href="index.php" class="nav-link">Home</a></li>
-                    <li class="nav-item"><a href="about.php" class="nav-link">About</a></li>
-                    <li class="nav-item"><a href="sermons.php" class="nav-link">Sermons</a></li>
-                    <li class="nav-item"><a href="events.php" class="nav-link active">Events</a></li>
-                    <li class="nav-item"><a href="media.php" class="nav-link">Media</a></li>
-                    <li class="nav-item dropdown">
-                        <a href="#" class="nav-link">Communities <i class="fas fa-chevron-down"></i></a>
-                        <ul class="dropdown-menu">
-                            <?php foreach ($communities as $community): ?>
-                                <li><a href="community.php?slug=<?php echo urlencode($community['slug']); ?>"><?php echo htmlspecialchars($community['name']); ?></a></li>
-                            <?php endforeach; ?>
-                        </ul>
-                    </li>
-                    <li class="nav-item"><a href="contact.php" class="nav-link">Contact</a></li>
-                    <?php foreach ($menuPages as $menuPage): ?>
-                        <li class="nav-item"><a href="page.php?slug=<?php echo urlencode($menuPage['slug']); ?>" class="nav-link"><?php echo htmlspecialchars($menuPage['title']); ?></a></li>
-                    <?php endforeach; ?>
-                </ul>
-                <div class="hamburger"><span class="bar"></span><span class="bar"></span><span class="bar"></span></div>
-            </div>
-        </nav>
-    </header>
+    <?php include 'includes/navbar.php'; ?>
 
     <section class="page-header">
         <div class="container">
@@ -107,28 +247,36 @@ function formatEventTime($time) {
 
     <section class="sermon-series" style="padding: 60px 0;">
         <div class="container">
-            <h2 style="margin-bottom: 30px;">Upcoming Events</h2>
+            <h2 style="margin-bottom: 20px;">Upcoming Events</h2>
             <?php if (count($upcomingEvents) > 0): ?>
-                <div class="series-grid">
+                <div class="event-card-grid">
                     <?php foreach ($upcomingEvents as $event): ?>
-                        <div class="sermon-card">
-                            <div class="sermon-thumbnail">
+                        <div class="event-card"
+                             data-title="<?php echo htmlspecialchars($event['title']); ?>"
+                             data-date="<?php echo formatEventDate($event['event_date']); ?>"
+                             data-time="<?php echo formatEventTime($event['event_time']); ?>"
+                             data-location="<?php echo htmlspecialchars($event['location'] ?? ''); ?>"
+                             data-image="<?php echo htmlspecialchars($event['image_url'] ?: 'https://images.pexels.com/photos/1587927/pexels-photo-1587927.jpeg?auto=compress&cs=tinysrgb&w=1200'); ?>"
+                             data-description="<?php echo htmlspecialchars(render_blocks($event['description'] ?? ''), ENT_QUOTES); ?>">
+                            <div class="event-thumb">
                                 <?php if ($event['image_url']): ?>
                                     <img src="<?php echo htmlspecialchars($event['image_url']); ?>" alt="<?php echo htmlspecialchars($event['title']); ?>">
                                 <?php else: ?>
                                     <img src="https://images.pexels.com/photos/1587927/pexels-photo-1587927.jpeg?auto=compress&cs=tinysrgb&w=400" alt="Event">
                                 <?php endif; ?>
+                                <div class="event-date-badge">
+                                    <span class="day"><?php echo date('d', strtotime($event['event_date'])); ?></span>
+                                    <span class="month"><?php echo date('M', strtotime($event['event_date'])); ?></span>
+                                </div>
                             </div>
-                            <div class="sermon-details">
-                                <span class="sermon-date"><?php echo formatEventDate($event['event_date']); ?></span>
+                            <div class="event-body">
                                 <h3><?php echo htmlspecialchars($event['title']); ?></h3>
-                                <p class="sermon-meta-item"><i class="fas fa-clock"></i> <?php echo formatEventTime($event['event_time']); ?></p>
+                                <div class="event-meta-line"><i class="fas fa-calendar-day"></i> <?php echo formatEventDate($event['event_date']); ?></div>
+                                <div class="event-meta-line"><i class="fas fa-clock"></i> <?php echo formatEventTime($event['event_time']); ?></div>
                                 <?php if ($event['location']): ?>
-                                    <p class="sermon-meta-item"><i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($event['location']); ?></p>
+                                    <div class="event-meta-line"><i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($event['location']); ?></div>
                                 <?php endif; ?>
-                                <?php if ($event['description']): ?>
-                                    <p><?php echo htmlspecialchars(substr($event['description'], 0, 120)) . (strlen($event['description']) > 120 ? '...' : ''); ?></p>
-                                <?php endif; ?>
+                                <div class="event-cta"><i class="fas fa-arrow-right"></i> View details</div>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -145,13 +293,13 @@ function formatEventTime($time) {
                 <div class="footer-section">
                     <div class="footer-logo">
                         <img src="images/logo.png" alt="GMPC Logo" class="footer-logo-img">
-                        <span>Garrison Methodist Presbyterian Church</span>
+                        <span><?php echo htmlspecialchars($churchName); ?></span>
                     </div>
                     <p>A community of faith, hope, and love serving God together</p>
                     <div class="social-links">
-                        <a href="https://www.facebook.com/gmpcburmacamp" target="_blank"><i class="fab fa-facebook"></i></a>
-                        <a href="https://www.youtube.com/@gmpcburmacamp3405" target="_blank"><i class="fab fa-youtube"></i></a>
-                        <a href="https://www.tiktok.com/@gmpcburmacamp" target="_blank"><i class="fab fa-tiktok"></i></a>
+                        <?php if (!empty($facebookUrl)): ?><a href="<?php echo htmlspecialchars($facebookUrl); ?>" target="_blank"><i class="fab fa-facebook"></i></a><?php endif; ?>
+                        <?php if (!empty($youtubeUrl)): ?><a href="<?php echo htmlspecialchars($youtubeUrl); ?>" target="_blank"><i class="fab fa-youtube"></i></a><?php endif; ?>
+                        <?php if (!empty($tiktokUrl)): ?><a href="<?php echo htmlspecialchars($tiktokUrl); ?>" target="_blank"><i class="fab fa-tiktok"></i></a><?php endif; ?>
                     </div>
                 </div>
                 <div class="footer-section">
@@ -166,18 +314,18 @@ function formatEventTime($time) {
                 <div class="footer-section">
                     <h4>Service Times</h4>
                     <ul>
-                        <li>Sunday School: 09:00 AM</li>
-                        <li>Morning Worship: 9:00 AM</li>
-                        <li>Counselling Session: 14:00 AM</li>
+                        <li>Sunday School: <?php echo htmlspecialchars($serviceSunday); ?></li>
+                        <li>Tuesday Service: <?php echo htmlspecialchars($serviceTuesday); ?></li>
+                        <li>Counselling Session: <?php echo htmlspecialchars($serviceCounselling); ?></li>
                     </ul>
                 </div>
                 <div class="footer-section">
                     <h4>Contact Info</h4>
                     <ul>
-                        <li>Garrison Methodist Presby Church</li>
-                        <li>Burma Camp, Accra</li>
-                        <li>(+233) 243-3689</li>
-                        <li>info@garrisonmpc.org</li>
+                        <li><?php echo htmlspecialchars($churchName); ?></li>
+                        <li><?php echo htmlspecialchars($churchAddress); ?></li>
+                        <li><?php echo htmlspecialchars($churchPhone); ?></li>
+                        <li><?php echo htmlspecialchars($churchEmail); ?></li>
                     </ul>
                 </div>
             </div>
@@ -187,7 +335,55 @@ function formatEventTime($time) {
         </div>
     </footer>
 
+    <div class="event-modal" id="eventModal">
+        <div class="event-modal-content">
+            <div class="event-modal-header">
+                <img id="eventModalImage" src="" alt="Event">
+                <button class="event-modal-close" onclick="closeEventModal()">&times;</button>
+            </div>
+            <div class="event-modal-body">
+                <h3 id="eventModalTitle"></h3>
+                <div class="event-modal-meta">
+                    <div><i class="fas fa-calendar-day"></i> <span id="eventModalDate"></span></div>
+                    <div><i class="fas fa-clock"></i> <span id="eventModalTime"></span></div>
+                    <div><i class="fas fa-map-marker-alt"></i> <span id="eventModalLocation"></span></div>
+                </div>
+                <div class="event-description" id="eventModalDescription"></div>
+            </div>
+        </div>
+    </div>
+
     <script src="js/scrolling-banner.js"></script>
     <script src="js/script.js"></script>
+    <script>
+        (function() {
+            const modal = document.getElementById('eventModal');
+            const imgEl = document.getElementById('eventModalImage');
+            const titleEl = document.getElementById('eventModalTitle');
+            const dateEl = document.getElementById('eventModalDate');
+            const timeEl = document.getElementById('eventModalTime');
+            const locEl = document.getElementById('eventModalLocation');
+            const descEl = document.getElementById('eventModalDescription');
+
+            document.querySelectorAll('.event-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    imgEl.src = card.dataset.image || '';
+                    titleEl.textContent = card.dataset.title || '';
+                    dateEl.textContent = card.dataset.date || '';
+                    timeEl.textContent = card.dataset.time || '';
+                    locEl.textContent = card.dataset.location || 'TBD';
+                    descEl.innerHTML = card.dataset.description || '';
+                    modal.classList.add('active');
+                });
+            });
+
+            window.closeEventModal = function() {
+                modal.classList.remove('active');
+            };
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeEventModal();
+            });
+        })();
+    </script>
 </body>
 </html>

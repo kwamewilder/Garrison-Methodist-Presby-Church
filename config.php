@@ -15,7 +15,6 @@ define('SITE_URL', 'http://localhost/gmpc');
 define('ADMIN_URL', 'http://localhost/gmpc/admin');
 define('UPLOAD_PATH', __DIR__ . '/uploads/');
 define('UPLOAD_URL', 'http://localhost/gmpc/uploads/');
-
 // Security
 define('SESSION_TIMEOUT', 3600); // 1 hour in seconds
 define('PASSWORD_MIN_LENGTH', 8);

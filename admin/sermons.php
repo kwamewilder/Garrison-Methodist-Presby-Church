@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $preacher = sanitizeInput($_POST['preacher']);
             $sermon_date = sanitizeInput($_POST['sermon_date']);
             $scripture_reference = sanitizeInput($_POST['scripture_reference']);
-            $description = sanitizeInput($_POST['description']);
+            $description = $_POST['content_json'] ?? sanitizeInput($_POST['description']);
             $audio_url = sanitizeInput($_POST['audio_url']);
             $video_url = sanitizeInput($_POST['video_url']);
             $series = sanitizeInput($_POST['series']);
@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $preacher = sanitizeInput($_POST['preacher']);
             $sermon_date = sanitizeInput($_POST['sermon_date']);
             $scripture_reference = sanitizeInput($_POST['scripture_reference']);
-            $description = sanitizeInput($_POST['description']);
+            $description = $_POST['content_json'] ?? sanitizeInput($_POST['description']);
             $audio_url = sanitizeInput($_POST['audio_url']);
             $video_url = sanitizeInput($_POST['video_url']);
             $series = sanitizeInput($_POST['series']);
@@ -221,8 +221,38 @@ try {
             </div>
 
             <div class="form-group">
-                <label>Description</label>
-                <textarea name="description" id="sermon_description" class="form-control" rows="3"></textarea>
+                <label>Sermon Content</label>
+                <div class="block-editor">
+                    <div class="block-editor-toolbar">
+                        <div class="toolbar-left">
+                            <span class="badge badge-soft">Drag & reorder blocks</span>
+                        </div>
+                        <div class="toolbar-right">
+                            <select id="sermonBlockTypeSelect" class="form-control" style="width: 200px;">
+                                <option value="">Add block...</option>
+                                <option value="heading">Heading</option>
+                                <option value="paragraph">Rich Text</option>
+                            <option value="list">List</option>
+                            <option value="quote">Quote</option>
+                            <option value="image">Image</option>
+                            <option value="video">Video</option>
+                            <option value="button">Button</option>
+                            <option value="scripture">Scripture</option>
+                            <option value="event">Event</option>
+                            <option value="sermon">Sermon</option>
+                            <option value="location">Location / Map</option>
+                            <option value="divider">Divider</option>
+                            <option value="spacer">Spacer</option>
+                            </select>
+                            <button type="button" class="btn btn-primary" id="sermonAddBlockBtn"><i class="fas fa-plus"></i> Add</button>
+                        </div>
+                    </div>
+
+                    <div class="block-canvas" id="sermonBlockCanvas"></div>
+                </div>
+                <input type="hidden" name="content_json" id="sermon_content_json">
+                <textarea name="description" id="sermon_description" class="form-control" rows="3" style="display:none;"></textarea>
+                <small style="color: #666;">Build your sermon summary/notes with blocks.</small>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
@@ -312,16 +342,189 @@ try {
 .modal-content form {
     padding: 30px;
 }
+
+.block-editor {
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 18px 45px rgba(10, 10, 51, 0.08);
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.block-editor:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 22px 55px rgba(10, 10, 51, 0.1);
+}
+
+.block-editor-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    background: linear-gradient(90deg, #f8fafc, #f1f5f9);
+}
+
+.block-editor .badge-soft {
+    background: #e0f2ff;
+    color: #1b6bd7;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.block-canvas {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.block-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fdfefe;
+    padding: 12px;
+    position: relative;
+    display: flex;
+    gap: 12px;
+    box-shadow: 0 8px 20px rgba(10, 10, 51, 0.05);
+    animation: blockFade 0.2s ease;
+}
+
+.block-handle {
+    width: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    color: #94a3b8;
+}
+
+.block-content {
+    flex: 1;
+    display: grid;
+    gap: 8px;
+}
+
+.block-title {
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.block-actions {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+}
+
+.block-actions button {
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    border-radius: 6px;
+    padding: 6px 8px;
+    cursor: pointer;
+    color: #475569;
+    transition: all 0.2s ease;
+}
+
+.block-actions button:hover {
+    background: #f1f5f9;
+    transform: translateY(-1px);
+}
+
+@keyframes blockFade {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.block-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #e2e8f0;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    color: #475569;
+}
+
+.block-input,
+.block-textarea {
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 10px;
+    background: #fff;
+}
+
+.block-textarea {
+    min-height: 90px;
+}
+
+.block-preview {
+    border: 1px dashed #dce3ed;
+    border-radius: 8px;
+    padding: 10px;
+    background: #fbfdff;
+    color: #475569;
+    font-size: 0.95rem;
+}
+
+.block-image-preview {
+    max-width: 100%;
+    border-radius: 8px;
+    margin-top: 8px;
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .block-card {
+        flex-direction: column;
+    }
+    .block-handle {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
 </style>
 
 <script>
 const allSermons = <?php echo json_encode($sermons); ?>;
+const sermonBlockCanvas = document.getElementById('sermonBlockCanvas');
+const sermonContentJsonField = document.getElementById('sermon_content_json');
+const sermonAddBlockBtn = document.getElementById('sermonAddBlockBtn');
+const sermonBlockTypeSelect = document.getElementById('sermonBlockTypeSelect');
+let sermonBlocks = [];
+const sermonDefaultBlockData = {
+    heading: { level: 2, text: 'Sermon heading', align: 'left' },
+    paragraph: { text: 'Add your sermon notes here...', align: 'left' },
+    list: { style: 'unordered', items: ['Point 1', 'Point 2'], align: 'left' },
+    quote: { text: 'Key quote', caption: '', align: 'left' },
+    image: { url: '', caption: '' },
+    video: { url: '', caption: '' },
+    button: { text: 'Watch Video', url: '#', style: 'primary' },
+    scripture: { reference: 'John 3:16', text: 'For God so loved the world...', version: 'NIV' },
+    event: { title: 'Upcoming Event', date: '', time: '', location: '', description: '' },
+    sermon: { title: 'Sermon', preacher: '', date: '', audioUrl: '', videoUrl: '', description: '' },
+    location: { address: '123 Church St, City', mapUrl: '' },
+    divider: {},
+    spacer: { height: 24 },
+};
 
 function showCreateModal() {
     document.getElementById('modalTitle').textContent = 'Create New Sermon';
     document.getElementById('formAction').value = 'create';
     document.getElementById('submitBtnText').textContent = 'Create Sermon';
     document.getElementById('sermonForm').reset();
+    sermonBlocks = [
+        { type: 'heading', data: { level: 2, text: 'Sermon Title' } },
+        { type: 'paragraph', data: { text: 'Add your main sermon summary here.' } }
+    ];
+    renderSermonBlocks();
     document.getElementById('sermonModal').style.display = 'block';
 }
 
@@ -337,7 +540,7 @@ function editSermon(id) {
     document.getElementById('sermon_preacher').value = sermon.preacher;
     document.getElementById('sermon_date').value = sermon.sermon_date;
     document.getElementById('sermon_scripture_reference').value = sermon.scripture_reference || '';
-    document.getElementById('sermon_description').value = sermon.description || '';
+    hydrateSermonBlocks(sermon.description || '');
     document.getElementById('sermon_audio_url').value = sermon.audio_url || '';
     document.getElementById('sermon_video_url').value = sermon.video_url || '';
     document.getElementById('sermon_series').value = sermon.series || '';
@@ -388,6 +591,452 @@ document.getElementById('sermonModal').addEventListener('click', function(e) {
         closeModal();
     }
 });
+
+function hydrateSermonBlocks(raw) {
+    try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+            sermonBlocks = parsed;
+        } else if (parsed && Array.isArray(parsed.blocks)) {
+            sermonBlocks = parsed.blocks;
+        } else {
+            sermonBlocks = [];
+        }
+    } catch (e) {
+        sermonBlocks = raw ? [{ type: 'paragraph', data: { text: raw } }] : [];
+    }
+    renderSermonBlocks();
+}
+
+function addSermonBlock(type) {
+    if (!type) return;
+    const clone = JSON.parse(JSON.stringify(sermonDefaultBlockData[type] || {}));
+    sermonBlocks.push({ type, data: clone });
+    renderSermonBlocks();
+    sermonBlockTypeSelect.value = '';
+}
+
+function renderSermonBlocks() {
+    sermonBlockCanvas.innerHTML = '';
+    sermonBlocks.forEach((block, index) => {
+        const card = document.createElement('div');
+        card.className = 'block-card';
+        card.draggable = true;
+        card.dataset.index = index;
+        card.addEventListener('dragstart', onSermonDragStart);
+        card.addEventListener('dragover', onSermonDragOver);
+        card.addEventListener('drop', onSermonDrop);
+
+        const handle = document.createElement('div');
+        handle.className = 'block-handle';
+        handle.innerHTML = '<i class="fas fa-grip-vertical"></i>';
+
+        const content = document.createElement('div');
+        content.className = 'block-content';
+        const title = document.createElement('div');
+        title.className = 'block-title';
+        title.innerHTML = `<span class="block-tag">${block.type}</span>`;
+        content.appendChild(title);
+        content.appendChild(renderSermonBlockFields(block, index));
+
+        const actions = document.createElement('div');
+        actions.className = 'block-actions';
+        actions.innerHTML = `
+            <button type="button" aria-label="Move up" onclick="moveSermonBlock(${index}, -1)"><i class="fas fa-arrow-up"></i></button>
+            <button type="button" aria-label="Move down" onclick="moveSermonBlock(${index}, 1)"><i class="fas fa-arrow-down"></i></button>
+            <button type="button" aria-label="Duplicate" onclick="duplicateSermonBlock(${index})"><i class="fas fa-copy"></i></button>
+            <button type="button" aria-label="Delete" onclick="deleteSermonBlock(${index})"><i class="fas fa-trash"></i></button>
+        `;
+        content.appendChild(actions);
+
+        card.appendChild(handle);
+        card.appendChild(content);
+        sermonBlockCanvas.appendChild(card);
+    });
+    syncSermonJsonField();
+}
+
+function createSermonAlignControl(block, index) {
+    const wrap = document.createElement('div');
+    wrap.className = 'block-input';
+    const label = document.createElement('label');
+    label.textContent = 'Alignment';
+    label.style.display = 'block';
+    label.style.fontSize = '12px';
+    label.style.color = '#666';
+    const select = document.createElement('select');
+    select.className = 'block-input';
+    ['left','center','right','justify'].forEach(al => {
+        const opt = document.createElement('option');
+        opt.value = al;
+        opt.textContent = al.charAt(0).toUpperCase() + al.slice(1);
+        if ((block.data.align || 'left') === al) opt.selected = true;
+        select.appendChild(opt);
+    });
+    select.addEventListener('change', (e) => {
+        sermonBlocks[index].data.align = e.target.value;
+        syncSermonJsonField();
+    });
+    wrap.append(label, select);
+    return wrap;
+}
+
+function renderSermonBlockFields(block, index) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'block-fields';
+    const bindInput = (input, path) => {
+        input.addEventListener('input', (e) => {
+            setSermonNested(sermonBlocks[index], path, e.target.value);
+            syncSermonJsonField();
+        });
+        return input;
+    };
+    switch (block.type) {
+        case 'heading': {
+            const level = document.createElement('select');
+            level.className = 'block-input';
+            [1,2,3,4,5,6].forEach(l => {
+                const opt = document.createElement('option');
+                opt.value = l;
+                opt.textContent = `H${l}`;
+                if (Number(block.data.level) === l) opt.selected = true;
+                level.appendChild(opt);
+            });
+            bindInput(level, ['data','level']);
+            const text = document.createElement('input');
+            text.className = 'block-input';
+            text.placeholder = 'Heading text';
+            text.value = block.data.text || '';
+            bindInput(text, ['data','text']);
+            wrapper.append(level, text, createSermonAlignControl(block, index));
+            break;
+        }
+        case 'paragraph': {
+            const area = document.createElement('textarea');
+            area.className = 'block-textarea';
+            area.placeholder = 'Rich text';
+            area.value = block.data.text || '';
+            bindInput(area, ['data','text']);
+            wrapper.append(area, createSermonAlignControl(block, index));
+            break;
+        }
+        case 'list': {
+            const style = document.createElement('select');
+            style.className = 'block-input';
+            ['unordered','ordered'].forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s;
+                opt.textContent = s === 'unordered' ? 'Bullets' : 'Numbers';
+                if (block.data.style === s) opt.selected = true;
+                style.appendChild(opt);
+            });
+            bindInput(style, ['data','style']);
+            const area = document.createElement('textarea');
+            area.className = 'block-textarea';
+            area.placeholder = 'One item per line';
+            area.value = (block.data.items || []).join('\\n');
+            area.addEventListener('input', (e) => {
+                sermonBlocks[index].data.items = e.target.value.split('\\n').filter(Boolean);
+                syncSermonJsonField();
+            });
+            wrapper.append(style, area, createSermonAlignControl(block, index));
+            break;
+        }
+        case 'quote': {
+            const quote = document.createElement('textarea');
+            quote.className = 'block-textarea';
+            quote.placeholder = 'Quote text';
+            quote.value = block.data.text || '';
+            bindInput(quote, ['data','text']);
+            const caption = document.createElement('input');
+            caption.className = 'block-input';
+            caption.placeholder = 'Caption';
+            caption.value = block.data.caption || '';
+            bindInput(caption, ['data','caption']);
+            wrapper.append(quote, caption, createSermonAlignControl(block, index));
+            break;
+        }
+        case 'image': {
+            const url = document.createElement('input');
+            url.className = 'block-input';
+            url.placeholder = 'Image URL';
+            url.value = block.data.url || '';
+            bindInput(url, ['data','url']);
+            const file = document.createElement('input');
+            file.type = 'file';
+            file.accept = 'image/*';
+            file.className = 'block-input';
+            file.addEventListener('change', (e) => handleSermonMediaUpload(e, index));
+            const caption = document.createElement('input');
+            caption.className = 'block-input';
+            caption.placeholder = 'Caption';
+            caption.value = block.data.caption || '';
+            bindInput(caption, ['data','caption']);
+            const preview = document.createElement('img');
+            preview.className = 'block-image-preview';
+            if (block.data.url) {
+                preview.src = block.data.url;
+                preview.style.display = 'block';
+            }
+            wrapper.append(url, file, caption, preview);
+            break;
+        }
+        case 'video': {
+            const url = document.createElement('input');
+            url.className = 'block-input';
+            url.placeholder = 'YouTube, Vimeo, or direct video URL';
+            url.value = block.data.url || '';
+            bindInput(url, ['data','url']);
+            const file = document.createElement('input');
+            file.type = 'file';
+            file.accept = 'video/*';
+            file.className = 'block-input';
+            file.addEventListener('change', (e) => handleSermonMediaUpload(e, index));
+            const caption = document.createElement('input');
+            caption.className = 'block-input';
+            caption.placeholder = 'Caption (optional)';
+            caption.value = block.data.caption || '';
+            bindInput(caption, ['data','caption']);
+            const preview = document.createElement('p');
+            preview.className = 'block-preview';
+            preview.textContent = block.data.url ? `Linked to: ${block.data.url}` : 'Upload a video file or paste a video link.';
+            wrapper.append(url, file, caption, preview);
+            break;
+        }
+        case 'button': {
+            const text = document.createElement('input');
+            text.className = 'block-input';
+            text.placeholder = 'Button text';
+            text.value = block.data.text || '';
+            bindInput(text, ['data','text']);
+            const link = document.createElement('input');
+            link.className = 'block-input';
+            link.placeholder = 'https://example.com';
+            link.value = block.data.url || '';
+            bindInput(link, ['data','url']);
+            const style = document.createElement('select');
+            style.className = 'block-input';
+            ['primary','secondary'].forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s;
+                opt.textContent = s.charAt(0).toUpperCase() + s.slice(1);
+                if (block.data.style === s) opt.selected = true;
+                style.appendChild(opt);
+            });
+            bindInput(style, ['data','style']);
+            wrapper.append(text, link, style);
+            break;
+        }
+        case 'scripture': {
+            const ref = document.createElement('input');
+            ref.className = 'block-input';
+            ref.placeholder = 'e.g., Psalm 23:1-6';
+            ref.value = block.data.reference || '';
+            bindInput(ref, ['data','reference']);
+            const text = document.createElement('textarea');
+            text.className = 'block-textarea';
+            text.placeholder = 'Scripture text';
+            text.value = block.data.text || '';
+            bindInput(text, ['data','text']);
+            const version = document.createElement('input');
+            version.className = 'block-input';
+            version.placeholder = 'Version (NIV, ESV, etc.)';
+            version.value = block.data.version || '';
+            bindInput(version, ['data','version']);
+            wrapper.append(ref, text, version);
+            break;
+        }
+        case 'location': {
+            const addr = document.createElement('input');
+            addr.className = 'block-input';
+            addr.placeholder = 'Address';
+            addr.value = block.data.address || '';
+            bindInput(addr, ['data','address']);
+            const map = document.createElement('input');
+            map.className = 'block-input';
+            map.placeholder = 'Google Maps embed URL (optional)';
+            map.value = block.data.mapUrl || '';
+            bindInput(map, ['data','mapUrl']);
+            wrapper.append(addr, map);
+            break;
+        }
+        case 'divider': {
+            const note = document.createElement('p');
+            note.style.fontSize = '12px';
+            note.style.color = '#666';
+            note.textContent = 'Adds a horizontal line break between sections.';
+            wrapper.append(note);
+            break;
+        }
+        case 'spacer': {
+            const height = document.createElement('input');
+            height.type = 'number';
+            height.min = 8;
+            height.max = 200;
+            height.className = 'block-input';
+            height.placeholder = 'Height in pixels';
+            height.value = block.data.height || 24;
+            height.addEventListener('input', (e) => {
+                sermonBlocks[index].data.height = Number(e.target.value || 0);
+                syncSermonJsonField();
+            });
+            const hint = document.createElement('small');
+            hint.style.color = '#666';
+            hint.textContent = 'Use spacers to add breathing room between blocks.';
+            wrapper.append(height, hint);
+            break;
+        }
+        case 'event': {
+            const title = document.createElement('input');
+            title.className = 'block-input';
+            title.placeholder = 'Event title';
+            title.value = block.data.title || '';
+            bindInput(title, ['data','title']);
+            const date = document.createElement('input');
+            date.type = 'date';
+            date.className = 'block-input';
+            date.value = block.data.date || '';
+            bindInput(date, ['data','date']);
+            const time = document.createElement('input');
+            time.type = 'time';
+            time.className = 'block-input';
+            time.value = block.data.time || '';
+            bindInput(time, ['data','time']);
+            const location = document.createElement('input');
+            location.className = 'block-input';
+            location.placeholder = 'Location';
+            location.value = block.data.location || '';
+            bindInput(location, ['data','location']);
+            const desc = document.createElement('textarea');
+            desc.className = 'block-textarea';
+            desc.placeholder = 'Short description';
+            desc.value = block.data.description || '';
+            bindInput(desc, ['data','description']);
+            wrapper.append(title, date, time, location, desc);
+            break;
+        }
+        case 'sermon': {
+            const title = document.createElement('input');
+            title.className = 'block-input';
+            title.placeholder = 'Sermon title';
+            title.value = block.data.title || '';
+            bindInput(title, ['data','title']);
+            const preacher = document.createElement('input');
+            preacher.className = 'block-input';
+            preacher.placeholder = 'Preacher';
+            preacher.value = block.data.preacher || '';
+            bindInput(preacher, ['data','preacher']);
+            const date = document.createElement('input');
+            date.type = 'date';
+            date.className = 'block-input';
+            date.value = block.data.date || '';
+            bindInput(date, ['data','date']);
+            const audio = document.createElement('input');
+            audio.className = 'block-input';
+            audio.placeholder = 'Audio URL (optional)';
+            audio.value = block.data.audioUrl || '';
+            bindInput(audio, ['data','audioUrl']);
+            const video = document.createElement('input');
+            video.className = 'block-input';
+            video.placeholder = 'Video URL (optional)';
+            video.value = block.data.videoUrl || '';
+            bindInput(video, ['data','videoUrl']);
+            const desc = document.createElement('textarea');
+            desc.className = 'block-textarea';
+            desc.placeholder = 'Description';
+            desc.value = block.data.description || '';
+            bindInput(desc, ['data','description']);
+            wrapper.append(title, preacher, date, audio, video, desc);
+            break;
+        }
+        default:
+            wrapper.textContent = 'Unknown block';
+    }
+    return wrapper;
+}
+
+function setSermonNested(obj, path, value) {
+    let target = obj;
+    for (let i = 0; i < path.length - 1; i++) {
+        const key = path[i];
+        if (!target[key]) target[key] = {};
+        target = target[key];
+    }
+    target[path[path.length - 1]] = value;
+}
+
+function moveSermonBlock(index, delta) {
+    const newIndex = index + delta;
+    if (newIndex < 0 || newIndex >= sermonBlocks.length) return;
+    const [moved] = sermonBlocks.splice(index, 1);
+    sermonBlocks.splice(newIndex, 0, moved);
+    renderSermonBlocks();
+}
+
+function deleteSermonBlock(index) {
+    sermonBlocks.splice(index, 1);
+    renderSermonBlocks();
+}
+
+function duplicateSermonBlock(index) {
+    const clone = JSON.parse(JSON.stringify(sermonBlocks[index]));
+    sermonBlocks.splice(index + 1, 0, clone);
+    renderSermonBlocks();
+}
+
+function handleSermonMediaUpload(event, index) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('csrf_token', '<?php echo generateCSRFToken(); ?>');
+
+    fetch('api/upload.php', { method: 'POST', body: formData })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.file && data.file.url) {
+                sermonBlocks[index].data.url = data.file.url;
+                renderSermonBlocks();
+            } else {
+                alert('Upload failed');
+            }
+        })
+        .catch(() => alert('Upload failed'));
+}
+
+function onSermonDragStart(e) {
+    e.dataTransfer.setData('text/plain', e.currentTarget.dataset.index);
+    e.dropEffect = 'move';
+}
+
+function onSermonDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+}
+
+function onSermonDrop(e) {
+    e.preventDefault();
+    const from = Number(e.dataTransfer.getData('text/plain'));
+    const to = Number(e.currentTarget.dataset.index);
+    if (isNaN(from) || isNaN(to) || from === to) return;
+    const [moved] = sermonBlocks.splice(from, 1);
+    sermonBlocks.splice(to, 0, moved);
+    renderSermonBlocks();
+}
+
+function syncSermonJsonField() {
+    sermonContentJsonField.value = JSON.stringify(sermonBlocks);
+}
+
+sermonAddBlockBtn.addEventListener('click', () => addSermonBlock(sermonBlockTypeSelect.value));
+
+document.getElementById('sermonForm').addEventListener('submit', () => {
+    syncSermonJsonField();
+});
+
+// Initialize
+renderSermonBlocks();
 </script>
 
 <?php require_once 'includes/footer.php'; ?>

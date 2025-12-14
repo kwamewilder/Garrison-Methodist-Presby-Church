@@ -24,6 +24,14 @@ try {
     $stmt = $conn->query("SELECT COUNT(*) as count FROM communities WHERE status = 'active'");
     $stats['communities'] = $stmt->fetch()['count'];
 
+    // Trend data: last 6 months
+    $stmt = $conn->query("SELECT DATE_FORMAT(created_at, '%Y-%m') as ym, COUNT(*) as cnt FROM pages GROUP BY ym ORDER BY ym DESC LIMIT 6");
+    $pageTrend = array_reverse($stmt->fetchAll());
+    $stmt = $conn->query("SELECT DATE_FORMAT(created_at, '%Y-%m') as ym, COUNT(*) as cnt FROM sermons GROUP BY ym ORDER BY ym DESC LIMIT 6");
+    $sermonTrend = array_reverse($stmt->fetchAll());
+    $stmt = $conn->query("SELECT DATE_FORMAT(event_date, '%Y-%m') as ym, COUNT(*) as cnt FROM events GROUP BY ym ORDER BY ym DESC LIMIT 6");
+    $eventTrend = array_reverse($stmt->fetchAll());
+
     // Get recent events
     $stmt = $conn->query("SELECT * FROM events WHERE event_date >= CURDATE() ORDER BY event_date ASC LIMIT 5");
     $recentEvents = $stmt->fetchAll();
@@ -81,6 +89,16 @@ try {
 </div>
 
 <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
+    <!-- Charts -->
+    <div class="card">
+        <div class="card-header">
+            <h2><i class="fas fa-chart-line"></i> Content Activity (Last 6 Months)</h2>
+        </div>
+        <div class="card-body">
+            <canvas id="contentChart" height="180"></canvas>
+        </div>
+    </div>
+
     <!-- Recent Events -->
     <div class="card">
         <div class="card-header">
@@ -178,3 +196,31 @@ try {
 </div>
 
 <?php require_once 'includes/footer.php'; ?>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const chartCtx = document.getElementById('contentChart');
+if (chartCtx) {
+    const labels = <?php echo json_encode(array_column($pageTrend, 'ym')); ?>;
+    const pageData = <?php echo json_encode(array_map('intval', array_column($pageTrend, 'cnt'))); ?>;
+    const sermonData = <?php echo json_encode(array_map('intval', array_column($sermonTrend, 'cnt'))); ?>;
+    const eventData = <?php echo json_encode(array_map('intval', array_column($eventTrend, 'cnt'))); ?>;
+    new Chart(chartCtx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [
+                { label: 'Pages', data: pageData, borderColor: '#4dabf7', backgroundColor: 'rgba(77,171,247,0.15)', tension: 0.3, fill: true },
+                { label: 'Sermons', data: sermonData, borderColor: '#f59f00', backgroundColor: 'rgba(245,159,0,0.15)', tension: 0.3, fill: true },
+                { label: 'Events', data: eventData, borderColor: '#2f9e44', backgroundColor: 'rgba(47,158,68,0.15)', tension: 0.3, fill: true },
+            ]
+        },
+        options: {
+            plugins: { legend: { position: 'bottom' } },
+            scales: {
+                y: { beginAtZero: true, ticks: { precision:0 } }
+            }
+        }
+    });
+}
+</script>

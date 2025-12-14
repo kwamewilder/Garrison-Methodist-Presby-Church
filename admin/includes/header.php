@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/permissions.php';
+require_once __DIR__ . '/permission_helpers.php';
 requireLogin();
 
 $currentAdmin = getCurrentAdmin();
@@ -30,10 +32,20 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
                     <span>Dashboard</span>
                 </a>
 
-                <a href="pages.php" class="nav-item <?php echo $currentPage === 'pages' ? 'active' : ''; ?>">
-                    <i class="fas fa-file-alt"></i>
-                    <span>Pages</span>
-                </a>
+                <div class="nav-item dropdown <?php echo in_array($currentPage, ['pages','pastors','elders']) ? 'active' : ''; ?>">
+                    <div class="nav-dropdown-toggle">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Pages</span>
+                        <i class="fas fa-chevron-down caret"></i>
+                    </div>
+                    <div class="nav-dropdown-menu">
+                        <a href="pages.php?slug=church-history" class="<?php echo $currentPage === 'pages' ? 'active' : ''; ?>">Church History</a>
+                        <a href="pages.php?slug=about" class="<?php echo $currentPage === 'pages' ? 'active' : ''; ?>">About Us</a>
+                        <a href="pages.php?slug=contact" class="<?php echo $currentPage === 'pages' ? 'active' : ''; ?>">Contact Us</a>
+                        <a href="elders.php" class="<?php echo $currentPage === 'elders' ? 'active' : ''; ?>">Church Elders</a>
+                        <a href="pastors.php" class="<?php echo $currentPage === 'pastors' ? 'active' : ''; ?>">Pastorial Team (Directory)</a>
+                    </div>
+                </div>
 
                 <a href="sections.php" class="nav-item <?php echo $currentPage === 'sections' ? 'active' : ''; ?>">
                     <i class="fas fa-layer-group"></i>
@@ -43,6 +55,11 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
                 <a href="events.php" class="nav-item <?php echo $currentPage === 'events' ? 'active' : ''; ?>">
                     <i class="fas fa-calendar"></i>
                     <span>Events</span>
+                </a>
+
+                <a href="posts.php" class="nav-item <?php echo $currentPage === 'posts' ? 'active' : ''; ?>">
+                    <i class="fas fa-newspaper"></i>
+                    <span>Articles</span>
                 </a>
 
                 <a href="sermons.php" class="nav-item <?php echo $currentPage === 'sermons' ? 'active' : ''; ?>">
@@ -76,6 +93,11 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
                     <span>Admins</span>
                 </a>
                 <?php endif; ?>
+
+                <a href="audit-log.php" class="nav-item <?php echo $currentPage === 'audit-log' ? 'active' : ''; ?>">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>Audit Log</span>
+                </a>
             </nav>
 
             <div class="sidebar-footer">
@@ -103,10 +125,14 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
                         View Site
                     </a>
 
-                    <div class="admin-profile">
-                        <i class="fas fa-user-circle"></i>
+                    <a href="profile.php" class="admin-profile">
+                        <?php if (!empty($currentAdmin['avatar_url'])): ?>
+                            <img src="<?php echo htmlspecialchars($currentAdmin['avatar_url']); ?>" alt="Profile" class="admin-avatar">
+                        <?php else: ?>
+                            <i class="fas fa-user-circle"></i>
+                        <?php endif; ?>
                         <span><?php echo htmlspecialchars($currentAdmin['name']); ?></span>
-                    </div>
+                    </a>
                 </div>
             </header>
 

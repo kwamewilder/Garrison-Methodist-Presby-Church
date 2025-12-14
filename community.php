@@ -77,6 +77,35 @@ try {
 } catch (PDOException $e) {
     error_log('Community posts fetch error: ' . $e->getMessage());
 }
+
+// Build a simple gallery from post images (uploaded in admin)
+$communityGallery = [];
+// Prefer dedicated community media uploads
+try {
+    $stmt = $conn->prepare("SELECT file_url FROM community_media WHERE community_slug = ? ORDER BY created_at DESC");
+    $stmt->execute([$community['slug']]);
+    $galleryRows = $stmt->fetchAll();
+    foreach ($galleryRows as $row) {
+        if (!empty($row['file_url'])) {
+            $communityGallery[] = $row['file_url'];
+        }
+    }
+} catch (PDOException $e) {
+    error_log('Community media fetch error: ' . $e->getMessage());
+}
+
+// Fallback to post images if no dedicated media
+if (count($communityGallery) === 0) {
+    foreach ($communityPosts as $post) {
+        if (!empty($post['image_url'])) {
+            $communityGallery[] = $post['image_url'];
+        }
+        if (count($communityGallery) >= 9) {
+            break;
+        }
+    }
+}
+$hasGallery = count($communityGallery) > 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -93,8 +122,8 @@ try {
     <style>
         .community-hero {
             position: relative;
-            padding: 70px 0;
-            background: linear-gradient(135deg, rgba(15,31,68,0.9), rgba(39,88,155,0.88)), url('images/1825375401006796.jpg') center/cover no-repeat;
+            padding: 90px 0 70px;
+            background: linear-gradient(135deg, rgba(9,6,49,0.94), rgba(36,84,160,0.9)), url('images/1825375401006796.jpg') center/cover no-repeat;
             color: #fff;
             overflow: hidden;
         }
@@ -111,28 +140,30 @@ try {
 
         .community-layout {
             display: grid;
-            grid-template-columns: minmax(0, 2.6fr) minmax(320px, 1fr);
-            gap: 38px;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 28px;
             align-items: start;
+        }
+        .community-layout.has-gallery {
+            grid-template-columns: minmax(260px, 0.9fr) minmax(0, 3fr);
         }
         .community-card {
             background: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 16px;
-            padding: 22px;
-            box-shadow: 0 14px 34px rgba(15,23,42,0.1);
+            border: 1px solid #e8edf5;
+            border-radius: 18px;
+            padding: 26px 28px;
+            box-shadow: 0 18px 36px rgba(15,23,42,0.12);
             line-height: 1.75;
-            max-width: 820px;
         }
         .community-card h2,
         .community-card h3,
         .community-card h4 {
-            color: #12345c;
+            color: #0f172a;
             margin-top: 0;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             position: relative;
             display: inline-block;
-            padding-bottom: 4px;
+            padding-bottom: 6px;
         }
         .community-card h2::after,
         .community-card h3::after,
@@ -141,18 +172,18 @@ try {
             position: absolute;
             left: 0;
             bottom: 0;
-            width: 42%;
+            width: 48%;
             height: 3px;
-            background: linear-gradient(90deg, #1f4e8c, #e2b34d);
+            background: linear-gradient(90deg, var(--color-primary), var(--color-primary-bright));
             border-radius: 999px;
         }
         .community-card p {
-            color: #1f2937;
-            margin: 0 0 1rem;
+            color: #1f273f;
+            margin: 0 0 1.1rem;
         }
         .community-card ul {
             margin: 0 0 1.2rem 1.2rem;
-            color: #1f2937;
+            color: #1f273f;
         }
         .community-card ul li {
             margin-bottom: 0.5rem;
@@ -160,50 +191,117 @@ try {
         .community-card blockquote {
             margin: 14px 0;
             padding: 14px 16px;
-            border-left: 4px solid #1f4e8c;
-            background: #f6f8fb;
-            color: #12345c;
+            border-left: 4px solid var(--color-primary);
+            background: #f6f9ff;
+            color: #0f172a;
             border-radius: 10px;
         }
         .community-card > *:not(:last-child) {
-            margin-bottom: 1.2rem;
+            margin-bottom: 1.3rem;
         }
         .community-card a {
-            color: #1f4e8c;
+            color: var(--color-primary);
             text-decoration: none;
             border-bottom: 1px solid transparent;
             transition: border-color 0.2s ease;
         }
         .community-card a:hover {
-            border-color: #e2b34d;
+            border-color: var(--color-primary);
         }
         .community-sidebar {
-            background: #f8f9fb;
-            border: 1px solid #e5e7eb;
-            border-radius: 14px;
-            padding: 14px 16px;
-            box-shadow: 0 10px 24px rgba(15,23,42,0.08);
+            background: linear-gradient(180deg, #f9fbff 0%, #f3f6fd 100%);
+            border: 1px solid #e8edf5;
+            border-radius: 16px;
+            padding: 16px 18px;
+            box-shadow: 0 12px 28px rgba(15,23,42,0.1);
             max-height: 1040px;
             overflow-y: auto;
         }
+        .community-gallery {
+            position: sticky;
+            top: 120px;
+            align-self: start;
+            background: #fff;
+            border: 1px solid #e8edf5;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12);
+        }
+        .community-gallery h3 {
+            margin: 0 0 12px 0;
+            color: #0f172a;
+        }
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px;
+        }
+        .gallery-tile {
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            background: #f4f6fb;
+            box-shadow: inset 0 0 0 1px rgba(15,23,42,0.04);
+        }
+        .gallery-tile img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+        .gallery-tile:hover img {
+            transform: scale(1.05);
+        }
+        .community-latest {
+            grid-column: 1 / -1;
+            background: linear-gradient(180deg, #f9fbff 0%, #f3f6fd 100%);
+            border: 1px solid #e8edf5;
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 14px 30px rgba(15, 23, 42, 0.1);
+        }
+        .community-latest h3 {
+            margin: 0 0 12px 0;
+            color: #0f172a;
+        }
+        .community-latest .community-sidebar {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            padding: 0;
+            overflow: hidden;
+        }
+        .articles-row {
+            display: flex;
+            gap: 14px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding-bottom: 8px;
+            scroll-snap-type: x mandatory;
+        }
         .community-article-card {
             text-decoration: none;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            padding: 10px 12px;
+            border: 1px solid #e8edf5;
+            border-radius: 12px;
+            padding: 12px;
             background: #fff;
-            box-shadow: 0 6px 16px rgba(15,23,42,0.06);
+            box-shadow: 0 10px 24px rgba(15,23,42,0.08);
             color: #0f172a;
             transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            flex: 0 0 240px;
+            scroll-snap-align: start;
         }
         .community-article-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 26px rgba(15,23,42,0.12);
-            border-color: rgba(93,173,236,0.35);
+            box-shadow: 0 14px 30px rgba(15,23,42,0.14);
+            border-color: rgba(36, 84, 160, 0.28);
         }
         .community-article-card img {
             width: 100%;
-            height: 120px;
+            height: 160px;
             object-fit: cover;
             border-radius: 8px;
             margin-bottom: 8px;
@@ -222,9 +320,71 @@ try {
             color: #4b5563;
             font-size: 0.95rem;
         }
+        @media (max-width: 1100px) {
+            .community-layout.has-gallery {
+                grid-template-columns: 1fr;
+            }
+            .community-gallery {
+                position: static;
+            }
+        }
         @media (max-width: 900px) {
             .community-layout {
                 grid-template-columns: 1fr;
+            }
+            .community-card {
+                padding: 20px;
+            }
+            .community-gallery {
+                padding: 16px;
+            }
+            .gallery-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+            .community-latest {
+                grid-column: 1;
+            }
+            .community-article-card {
+                flex: 0 0 210px;
+            }
+        }
+        @media (max-width: 768px) {
+            .community-hero {
+                padding: 70px 0 50px;
+                text-align: center;
+            }
+            .community-hero h1 {
+                font-size: 2.2rem;
+            }
+            .community-hero p {
+                margin: 0 auto;
+            }
+            .community-card {
+                padding: 18px;
+            }
+            .community-gallery {
+                padding: 14px;
+            }
+            .gallery-grid {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            }
+            .community-article-card {
+                flex: 0 0 190px;
+            }
+            .community-article-card img {
+                height: 150px;
+            }
+        }
+        @media (max-width: 640px) {
+            .articles-row {
+                gap: 10px;
+            }
+            .community-article-card {
+                flex: 0 0 180px;
+                padding: 10px;
+            }
+            .community-article-card img {
+                height: 140px;
             }
         }
     </style>
@@ -237,15 +397,48 @@ try {
     <?php include __DIR__ . '/includes/navbar.php'; ?>
 
     <section class="community-hero">
-        <div class="container">
+        <div class="container community-container">
             <h1><?php echo htmlspecialchars($community['name']); ?></h1>
             <p><?php echo htmlspecialchars($community['description']); ?></p>
         </div>
     </section>
 
     <section class="custom-page-content" style="padding: 60px 0;">
-        <div class="container">
-            <div class="page-content-wrapper community-layout">
+        <div class="container community-container">
+            <div class="page-content-wrapper community-layout <?php echo $hasGallery ? 'has-gallery' : ''; ?>">
+                <?php if (count($communityPosts) > 0): ?>
+                    <div class="community-latest">
+                        <h3>Latest Articles</h3>
+                        <aside class="community-sidebar">
+                            <div class="articles-row">
+                                <?php foreach ($communityPosts as $post): ?>
+                                    <a class="community-article-card" href="post.php?slug=<?php echo urlencode($post['slug']); ?>">
+                                        <?php if (!empty($post['image_url'])): ?>
+                                            <img src="<?php echo htmlspecialchars($post['image_url']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
+                                        <?php endif; ?>
+                                        <div class="community-article-meta"><?php echo date('M j, Y', strtotime($post['published_at'] ?: $post['created_at'])); ?></div>
+                                        <div class="community-article-title"><?php echo htmlspecialchars($post['title']); ?></div>
+                                        <div class="community-article-excerpt"><?php echo htmlspecialchars($post['excerpt'] ?: 'Read more'); ?></div>
+                                    </a>
+                                <?php endforeach; ?>
+                            </div>
+                        </aside>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($hasGallery): ?>
+                    <aside class="community-gallery">
+                        <h3>Community Media</h3>
+                        <div class="gallery-grid">
+                            <?php foreach ($communityGallery as $img): ?>
+                                <div class="gallery-tile">
+                                    <img src="<?php echo htmlspecialchars($img); ?>" alt="Community media">
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </aside>
+                <?php endif; ?>
+
                 <div class="community-card">
                     <?php if ($renderedBlocks): ?>
                         <div class="community-full-content">
@@ -253,26 +446,6 @@ try {
                         </div>
                     <?php endif; ?>
                 </div>
-
-                <?php if (count($communityPosts) > 0): ?>
-                    <div>
-                        <h3 style="margin:0 0 10px 0;">Latest Articles</h3>
-                        <aside class="community-sidebar">
-                        <div style="display:flex; flex-direction:column; gap:12px;">
-                            <?php foreach ($communityPosts as $post): ?>
-                                <a class="community-article-card" href="post.php?slug=<?php echo urlencode($post['slug']); ?>">
-                                    <?php if (!empty($post['image_url'])): ?>
-                                        <img src="<?php echo htmlspecialchars($post['image_url']); ?>" alt="<?php echo htmlspecialchars($post['title']); ?>">
-                                    <?php endif; ?>
-                                    <div class="community-article-meta"><?php echo date('M j, Y', strtotime($post['published_at'] ?: $post['created_at'])); ?></div>
-                                    <div class="community-article-title"><?php echo htmlspecialchars($post['title']); ?></div>
-                                    <div class="community-article-excerpt"><?php echo htmlspecialchars($post['excerpt'] ?: 'Read more'); ?></div>
-                                </a>
-                            <?php endforeach; ?>
-                        </div>
-                        </aside>
-                    </div>
-                <?php endif; ?>
             </div>
         </div>
     </section>
